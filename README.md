@@ -4,7 +4,7 @@ Pipeline de legendas multilíngues para vídeo vertical. Você deixa cortes em p
 
 Faz parte do ecossistema [Ishtar Sink](https://github.com/Ishtar-Sink): código aberto (AGPL-3.0), pensado para autohospedagem, sem conta, sem plano pago e sem telemetria. O vídeo não sai da sua máquina; só o texto transcrito vai para a API de IA.
 
-> **Em desenvolvimento.** Este repositório ainda não tem código. O que está descrito abaixo é o escopo do MVP, definido na SPEC-001.
+> **Em desenvolvimento.** Este repositório ainda não tem código. O que está descrito abaixo é o escopo do MVP, definido na [SPEC-001](vostok/work/specs/draft/SPEC-001-mvp-pipeline-de-legendas-multilingues.md).
 
 ## O que ele faz
 
@@ -68,4 +68,4 @@ A injeção translunar é a queima de motor que tira a nave da órbita da Terra 
 
 ## Licença
 
-AGPL-3.0.
+[AGPL-3.0](LICENSE).
