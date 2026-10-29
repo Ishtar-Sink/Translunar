@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#{DOC_TITLE}</title>
+<style>
+#{TOKENS}
+* { box-sizing: border-box; }
+html { background: var(--color-bg); }
+body {
+  margin: 0; background: var(--color-bg); color: var(--color-ink);
+  font: 400 14px/1.55 var(--font-body); -webkit-font-smoothing: antialiased;
+}
+code { font: .92em var(--font-mono); background: var(--color-surface-2); padding: 1px 5px; border-radius: 4px; }
+p { margin: 0 0 12px; }
+h2 { font-size: 20px; margin: 0 0 5px; letter-spacing: -.015em; text-wrap: pretty; }
+h3 { font-size: 15px; margin: 0 0 8px; letter-spacing: -.008em; }
+
+/* Cabeçalho em faixa */
+.hd { background: linear-gradient(160deg, var(--color-head) 0%, var(--color-head-2) 100%); color: var(--color-head-ink);
+      padding: 20px clamp(16px, 4vw, 40px) 0; }
+.hd-top, .hd-body { max-width: 1120px; margin: 0 auto; }
+.hd-top { display: flex; align-items: center; gap: 12px; }
+.mark { width: 26px; height: 26px; flex: none; }
+.wm { font-weight: 700; font-size: 15px; letter-spacing: -.01em; line-height: 1.15; }
+.wm small { display: block; font-weight: 500; font-size: 11px; color: var(--color-head-muted); letter-spacing: .02em; }
+.hd-sp { flex: 1; }
+.tbtn { background: rgba(255,255,255,.09); color: var(--color-head-ink); border: 1px solid rgba(255,255,255,.18);
+        border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 12px; cursor: pointer; }
+.tbtn:hover { background: rgba(255,255,255,.17); }
+.tbtn:focus-visible { outline: 2px solid var(--color-head-muted); outline-offset: 2px; }
+.hd-body { padding: 26px 0 28px; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--color-head-muted); margin: 0 0 9px; }
+.hd-body h1 { font-size: clamp(26px, 3.5vw, 35px); line-height: 1.12; margin: 0 0 12px; letter-spacing: -.024em; text-wrap: pretty; }
+.lede { font-size: 14.5px; color: var(--color-head-muted); max-width: 900px; }
+.lede p:last-child { margin-bottom: 0; }
+.lede strong { color: var(--color-head-ink); font-weight: 600; }
+.lede code { background: rgba(255,255,255,.1); color: var(--color-head-ink); }
+
+main { max-width: 1120px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 56px; }
+.panel { padding: 30px 0 4px; }
+.tabs .panel:not(.on) { display: none; }
+.sec-h { margin: 0 0 14px; }
+.sec-h > p { color: var(--color-muted); font-size: 13.5px; margin: 6px 0 0; }
+/* Tabelas */
+.tw { overflow-x: auto; border: 1px solid var(--color-line); border-radius: 14px; background: var(--color-surface); margin: 0 0 14px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); font-weight: 700;
+     padding: 11px 14px; border-bottom: 1px solid var(--color-line); background: var(--color-surface-2); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--color-line); font-size: 13.5px; vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.strong { font-weight: 600; }
+
+.na { color: var(--color-muted); font-style: italic; }
+
+/* Abas */
+.nav { position: sticky; top: 0; z-index: 20; background: var(--color-surface); border-bottom: 1px solid var(--color-line); }
+.nav-in { max-width: 1120px; margin: 0 auto; display: flex; gap: 2px; padding: 0 clamp(16px, 4vw, 40px); overflow-x: auto; }
+.nav a { display: block; padding: 12px 12px 10px; font-size: 12.5px; color: var(--color-muted); text-decoration: none;
+         border-bottom: 2px solid transparent; white-space: nowrap; }
+.nav a:hover { color: var(--color-ink); }
+.nav a.on { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+.nav a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -3px; border-radius: 3px; }
+
+/* Diffs */
+details.dfile { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 9px; margin: 0 0 8px; overflow: hidden; }
+details.dfile[open] { border-color: var(--color-primary); }
+details.dfile > summary { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 11px 15px; cursor: pointer; list-style: none; }
+details.dfile > summary::-webkit-details-marker { display: none; }
+details.dfile > summary::before { content: "+"; font-family: var(--font-mono); color: var(--color-primary); font-weight: 700; flex: none; width: 11px; }
+details.dfile[open] > summary::before { content: "\2212"; }
+details.dfile > summary:hover { background: var(--color-surface-2); }
+details.dfile > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+details.dfile > summary .path { font: 600 12.5px var(--font-mono); flex: 1; min-width: 200px; overflow-wrap: anywhere; }
+.dbody { border-top: 1px solid var(--color-line); }
+.dbody > p { margin: 0; padding: 12px 15px; color: var(--color-muted); font-size: 13px; }
+.dbody .tw { border: 0; border-radius: 0; margin: 0; }
+table.diff { table-layout: fixed; min-width: 760px; font: 12px/1.5 var(--font-mono); }
+table.diff td { padding: 0 8px; border-bottom: 0; font-size: 12px; vertical-align: top; }
+table.diff col.cln { width: 48px; }
+table.diff td.ln { width: 48px; text-align: right; color: var(--color-muted); user-select: none; background: var(--color-surface-2); }
+table.diff td.code { white-space: pre-wrap; overflow-wrap: anywhere; }
+table.diff td.code.del { background: var(--color-diff-del-soft); }
+table.diff td.code.add { background: var(--color-diff-add-soft); }
+table.diff td.code.empty { background: var(--color-surface-2); }
+table.diff tr:has(td.code.del) td.ln:nth-child(1) { color: var(--color-diff-del); }
+table.diff tr:has(td.code.add) td.ln:nth-child(3) { color: var(--color-diff-add); }
+table.diff tr.hunk td { background: var(--color-primary-soft); color: var(--color-muted); padding: 4px 10px; }
+table.diff td.code:nth-child(2) { border-right: 1px solid var(--color-line); }
+
+/* Etiquetas e notas */
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px;
+       white-space: nowrap; background: var(--color-surface-2); color: var(--color-muted); }
+.chip { display: inline-block; font: 700 11.5px var(--font-mono); color: var(--color-primary); background: var(--color-primary-soft);
+        padding: 1px 7px; border-radius: 999px; margin: 0 4px 3px 0; white-space: nowrap; }
+.tag.criar { background: var(--color-ok-soft); color: var(--color-ok); }
+.tag.alterar { background: var(--color-primary-soft); color: var(--color-primary); }
+.tag.remover { background: var(--color-crit-soft); color: var(--color-crit); }
+td.path { font: 12.5px var(--font-mono); overflow-wrap: anywhere; }
+td.mono { font: 12.5px var(--font-mono); white-space: nowrap; }
+.md { font-size: 14px; }
+.md ul, .md ol { margin: 0 0 12px; padding-left: 22px; }
+.md li { margin: 4px 0; }
+.md li::marker { color: var(--color-primary); }
+.note { background: var(--color-primary-soft); border-radius: 9px; padding: 15px 18px; font-size: 13.5px; margin: 20px 0 0; }
+.note > b:first-child { display: block; text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em; margin-bottom: 4px; color: var(--color-primary); }
+.note p:last-child, .note ul:last-child, .note ol:last-child { margin-bottom: 0; }
+.note ul, .note ol { margin: 0 0 10px; padding-left: 20px; }
+.note.warn { background: var(--color-warn-soft); }
+.note.warn > b:first-child { color: var(--color-warn); }
+
+/* Conteúdo em Markdown */
+.md { font-size: 14px; }
+.md ul, .md ol { margin: 0 0 12px; padding-left: 22px; }
+.md li { margin: 4px 0; }
+.md li::marker { color: var(--color-primary); }
+
+footer { max-width: 1120px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 44px; border-top: 1px solid var(--color-line);
+         color: var(--color-muted); font-size: 12px; }
+
+@page { margin: 14mm 0; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tbtn, .nav { display: none; }
+  details.dfile { break-inside: auto; }
+  main { padding-bottom: 0; }
+  .hd { padding-top: 0; }
+  .tabs .panel:not(.on), .panel { display: block; }
+  .panel + .panel { break-before: page; }
+  .sec-h, tr, th { break-inside: avoid; }
+  .sec-h { break-after: avoid; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="hd-top">
+    <svg class="mark" viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="6" fill="currentColor"/>
+      <ellipse cx="13" cy="13" rx="12" ry="4.5" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".55" transform="rotate(-24 13 13)"/>
+    </svg>
+    <div class="wm">Vostok<small>Harness · finalização de spec</small></div>
+    <div class="hd-sp"></div>
+    <button type="button" class="tbtn" id="theme-toggle" aria-pressed="false">Tema claro</button>
+  </div>
+  <div class="hd-body">
+    <p class="eyebrow">Documento técnico · #{SPEC_ID} · aprovada em #{APPROVED} · concluída em #{FINISHED}</p>
+    <h1>#{SPEC_TITLE}</h1>
+    <div class="lede">
+      <p>Para quem vai manter o que foi entregue: <strong>o que foi feito</strong> e como, os <strong>requisitos</strong> cobertos, os <strong>arquivos</strong> e <strong>commits</strong>, as decisões e onde se aprofundar.</p>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Seções">
+  <div class="nav-in" role="tablist">
+    <a href="#p-visao-geral" role="tab" data-tab="visao-geral">Visão geral</a>
+    <a href="#p-arquitetura" role="tab" data-tab="arquitetura">Arquitetura</a>
+    <a href="#p-o-que-foi-feito" role="tab" data-tab="o-que-foi-feito">O que foi feito</a>
+    <a href="#p-requisitos" role="tab" data-tab="requisitos">Requisitos</a>
+    <a href="#p-arquivos" role="tab" data-tab="arquivos">Arquivos</a>
+    <a href="#p-diffs" role="tab" data-tab="diffs">Diffs</a>
+    <a href="#p-commits" role="tab" data-tab="commits">Commits</a>
+    <a href="#p-decisoes" role="tab" data-tab="decisoes">Decisões</a>
+    <a href="#p-aprendizados" role="tab" data-tab="aprendizados">Aprendizados</a>
+    <a href="#p-atencao" role="tab" data-tab="atencao">Atenção</a>
+    <a href="#p-referencias" role="tab" data-tab="referencias">Referências</a>
+  </div>
+</nav>
+
+<main>
+  <section class="panel" id="p-visao-geral" role="tabpanel" data-panel="visao-geral">
+    <div class="sec-h"><h2>Visão geral</h2></div>
+    <div class="md">
+#{OVERVIEW}
+    </div>
+  </section>
+
+  <section class="panel" id="p-arquitetura" role="tabpanel" data-panel="arquitetura">
+    <div class="sec-h"><h2>Arquitetura e componentes</h2></div>
+    <div class="md">
+#{ARCHITECTURE}
+    </div>
+  </section>
+
+  <section class="panel" id="p-o-que-foi-feito" role="tabpanel" data-panel="o-que-foi-feito">
+    <div class="sec-h"><h2>O que foi feito</h2></div>
+    <div class="md">
+#{DONE}
+    </div>
+  </section>
+
+  <section class="panel" id="p-requisitos" role="tabpanel" data-panel="requisitos">
+    <div class="sec-h"><h2>Requisitos e tarefas</h2><p>Cada requisito com as tarefas que o cobrem.</p></div>
+#{REQUIREMENTS}
+  </section>
+
+  <section class="panel" id="p-arquivos" role="tabpanel" data-panel="arquivos">
+    <div class="sec-h"><h2>Arquivos alterados</h2><p>Os caminhos de "Mudar" das tarefas, com a ação.</p></div>
+#{FILES}
+  </section>
+
+  <section class="panel" id="p-diffs" role="tabpanel" data-panel="diffs">
+    <div class="sec-h"><h2>Diffs</h2><p>O que mudou em cada arquivo alterado, entre o último commit anterior à aprovação e o estado atual.</p></div>
+#{DIFFS}
+  </section>
+
+  <section class="panel" id="p-commits" role="tabpanel" data-panel="commits">
+    <div class="sec-h"><h2>Commits</h2><p>Desde a aprovação da spec, nos caminhos das tarefas.</p></div>
+#{COMMITS}
+  </section>
+
+  <section class="panel" id="p-decisoes" role="tabpanel" data-panel="decisoes">
+    <div class="sec-h"><h2>Decisões</h2></div>
+    <div class="md">
+#{DECISIONS}
+    </div>
+  </section>
+
+  <section class="panel" id="p-aprendizados" role="tabpanel" data-panel="aprendizados">
+    <div class="sec-h"><h2>Aprendizados</h2></div>
+    <div class="md">
+#{LEARNINGS}
+    </div>
+  </section>
+
+  <section class="panel" id="p-atencao" role="tabpanel" data-panel="atencao">
+    <div class="sec-h"><h2>Pontos de atenção</h2></div>
+    <div class="note warn"><b>Antes de mexer</b>
+#{ATTENTION}
+    </div>
+  </section>
+
+  <section class="panel" id="p-referencias" role="tabpanel" data-panel="referencias">
+    <div class="sec-h"><h2>Referências</h2><p>Para se aprofundar.</p></div>
+    <div class="md">
+#{REFERENCES}
+    </div>
+  </section>
+</main>
+
+<footer>Vostok · documento técnico de #{SPEC_ID}, gerado a partir da spec, das tarefas e do conteúdo da finalização.</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var button = document.getElementById("theme-toggle");
+  button.addEventListener("click", function () {
+    var light = root.getAttribute("data-theme") !== "light";
+    root.setAttribute("data-theme", light ? "light" : "dark");
+    button.textContent = light ? "Tema escuro" : "Tema claro";
+    button.setAttribute("aria-pressed", light ? "true" : "false");
+  });
+
+  // Abas: sem JavaScript, todas as seções aparecem em sequência e os links levam a cada uma.
+  // Links do menu sem painel correspondente saem do menu.
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".nav a[data-tab]")).filter(function (a) {
+    if (document.getElementById("p-" + a.getAttribute("data-tab"))) return true;
+    a.parentNode.removeChild(a);
+    return false;
+  });
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".panel"));
+  // O hash da aba (#diffs) não coincide com o id da seção (p-diffs): o link continua compartilhável
+  // e o navegador não rola até a seção antes de ela aparecer, o que esconderia o cabeçalho.
+  function show(id) {
+    if (!tabs.length) return;
+    id = id.replace(/^p-/, "");
+    if (!document.getElementById("p-" + id)) id = tabs[0].getAttribute("data-tab");
+    tabs.forEach(function (a) {
+      var on = a.getAttribute("data-tab") === id;
+      a.classList.toggle("on", on);
+      a.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    panels.forEach(function (p) { p.classList.toggle("on", p.id === "p-" + id); });
+  }
+  tabs.forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      show(a.getAttribute("data-tab"));
+      history.replaceState(null, "", "#" + a.getAttribute("data-tab"));
+    });
+  });
+  document.body.classList.add("tabs");
+  show((location.hash || "").replace("#", ""));
+
+  // Na impressão, os blocos de diff fechados abrem para o conteúdo sair inteiro no papel.
+  var closed = [];
+  window.addEventListener("beforeprint", function () {
+    closed = Array.prototype.slice.call(document.querySelectorAll("details.dfile:not([open])"));
+    closed.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    closed.forEach(function (d) { d.open = false; });
+  });
+})();
+</script>
+</body>
+</html>

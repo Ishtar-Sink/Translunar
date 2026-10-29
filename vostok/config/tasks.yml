@@ -1,0 +1,163 @@
+# Configurações do planejamento e das tarefas (skills plan-tasks, adjust-plan e approve-plan).
+
+# ID no formato <prefixo>-<número com `digits` dígitos>, numerado dentro de cada spec. Ex.: TASK-01.
+id:
+  prefix: TASK
+  digits: 2
+
+# Status da tarefa, na ordem do ciclo: criada (pending), aprovada pelo usuário (approved), em execução
+# (in_progress), em validação (validating), bloqueada à espera do usuário (blocked) e concluída (done).
+status:
+  pending: pending
+  approved: approved
+  in_progress: in_progress
+  validating: validating
+  blocked: blocked
+  done: done
+
+# Máximo de falhas nos testes antes de a tarefa ficar bloqueada ([agent/anti-loop-02]).
+max_attempts: 2
+
+# Trechos de texto ignorados pelo vostok task regression: as linhas que contêm algum deles saem da
+# comparação com o baseline, dos dois lados (hora, duração). O `NN.diff` continua com a saída inteira.
+regression_ignore:
+  - Start at
+  - Duration
+  - finished in
+  - "Time:"
+
+# Pasta das evidências e do baseline de cada tarefa, relativa a `paths.tasks`/<SPEC_ID>.
+evidence_dir: evidence
+
+# Seção do arquivo da tarefa com uma linha por etapa da execução, escrita só pelos scripts.
+record_section: Registro de execução
+
+# Tipos aceitos na coluna "Tipo" do plano e no campo `type` da tarefa (correspondem ao tipo do card no board).
+task_types:
+  - tarefa
+  - historia
+  - bug
+
+# Templates, relativos a `paths.templates` (main.yml).
+plan_template: plan/plan.md
+task_template: task/task.md
+
+# --- Nível de esforço ---
+# O nível é uma sugestão e nunca indica um modelo. A pontuação de uma tarefa é a soma dos fatos
+# ponderados; o nível é o primeiro de `effort_levels` cujo limite é maior ou igual à pontuação.
+# O último nível não tem limite.
+effort_levels:
+  - simples
+  - moderada
+  - complexa
+  - critica
+
+effort_limits:
+  simples: 4
+  moderada: 9
+  complexa: 15
+
+effort_descriptions:
+  simples: "Mudança pequena e bem delimitada, com passos diretos."
+  moderada: "Várias mudanças relacionadas, com alguma decisão local."
+  complexa: "Mudança ampla ou com decisões de desenho que exigem raciocínio."
+  critica: "Contrato público, risco alto ou muitas partes interligadas."
+
+# Peso de cada fato. Os números multiplicam a quantidade; os de sim ou não somam quando o valor é "sim".
+effort_weights:
+  files_create: 2       # arquivos a criar
+  files_change: 1       # arquivos a alterar
+  ids_covered: 1        # IDs da spec cobertos (coluna "Cobre" do plano)
+  public_contract: 4    # muda um contrato ou interface pública
+  inference: 2          # depende de inferência
+  high_risk: 4          # cobre um risco de impacto alto
+
+# Seções da spec cujos IDs cada tarefa precisa cobrir, por tipo de spec (chaves de `sections_<tipo>` em specs.yml).
+coverage_feature:
+  - functional-requirements
+  - test-cases
+coverage_improvement:
+  - functional-requirements
+  - test-cases
+coverage_fix:
+  - functional-requirements
+  - test-cases
+coverage_study:
+  - research-questions
+coverage_analysis:
+  - synthesis
+
+# --- Arquivo de tarefa ---
+# Seção carregada pelo vostok task load e suas subseções obrigatórias.
+execution_section: Execução
+execution_subsections:
+  - Ler
+  - Mudar
+  - Passos
+  - Baseline
+  - Verificação
+  - Evidências
+  - Concluída quando
+
+# Subseção de "Execução" com os arquivos a mudar, um por item: "- `caminho` (ação): motivo".
+change_subsection: Mudar
+
+# Subseção "Verificação": um bloco `bash` com os comandos que comprovam a tarefa, executado pelo
+# vostok task tests como um script, que para no primeiro comando com falha.
+verify_subsection: Verificação
+
+# Subseção "Baseline": um comando por item ("- `comando`"), rodado antes e depois da mudança.
+baseline_subsection: Baseline
+
+# Subseção "Evidências": "- `arquivo` (automática): `comando`" ou "- `arquivo` (manual): descrição",
+# ou o texto de `evidence_none` quando a tarefa não gera evidência.
+evidence_subsection: Evidências
+evidence_automatic: automática
+evidence_manual: manual
+evidence_none: Não se aplica.
+
+# Subitens recuados sob cada evidência ("  - Prova: texto"), escritos na aprovação do plano: o que a
+# evidência prova e o critério coberto, o que procurar na saída, o que indicaria falha e, quando houver,
+# o artefato medido. A aprovação do plano exige os obrigatórios; os leitores das evidências os ignoram.
+evidence_fields:
+  - Prova
+  - Trecho
+  - Falha
+evidence_optional_fields:
+  - Artefato
+
+# Subseção de "Execução" com os critérios de conclusão: um checkbox por critério ("- [ ] critério (IDs).")
+# seguido, numa citação recuada, da forma de comprová-lo em linguagem simples
+# ("  > Como comprovar: o que conferir e o resultado esperado").
+# O agente marca [x] na validação, depois de conferir a comprovação de cada item.
+done_subsection: Concluída quando
+done_proof_label: Como comprovar
+
+# Seção para leitura humana, fora do vostok task load, e suas subseções obrigatórias.
+description_section: Descrição
+description_subsections:
+  - Resumo executivo
+  - Detalhes técnicos
+  - Card
+
+executive_summary_subsection: Resumo executivo
+executive_summary_max_lines: 5
+
+# Campos obrigatórios da subseção "Card", cada um num item "- **Campo:**".
+card_subsection: Card
+card_fields:
+  - Título
+  - Tipo
+  - Descrição
+  - Critérios de aceite
+  - Rótulos
+  - Estimativa
+  - Bloqueada por
+
+# Persistência das evidências no projeto (`vostok task persist`). Com `persist_dir` vazio, ela fica
+# desligada e a conclusão funciona como antes. O caminho parte da raiz do projeto, com <SPEC> e <TASK>
+# (ex.: docs/evidencias/<SPEC>/<TASK>). Arquivos acima de `persist_max_mb` não são copiados: o guia
+# registra o tamanho, o SHA-256 e onde fica o original.
+persist_dir: ""
+persist_readme: README.md
+persist_max_mb: 10

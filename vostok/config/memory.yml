@@ -1,0 +1,78 @@
+# Memória do agente: decisões, problemas (issues) e conhecimentos do projeto.
+# Os arquivos ficam em `paths.agent_memory` (main.yml). Cada entrada é um bloco `## <ID>: <título>`
+# com campos fixos, criado por `vostok memory add` e consultado por `vostok memory search`.
+
+# Tipos de memória, na ordem usada quando a busca é em `all`.
+types:
+  - decision
+  - issue
+  - knowledge
+
+# Por tipo: arquivo, prefixo e dígitos do ID, chave da numeração em `sequences.yml`,
+# template da entrada (relativo a `paths.templates`) e título e descrição do arquivo.
+decision:
+  file: decisions.md
+  prefix: DEC
+  digits: 3
+  sequence: decisions
+  template: memory/decision.md
+  title: Decisões
+  description: Decisões estruturantes do projeto e o motivo de cada uma. Consulte antes de decidir algo que afete arquitetura, stack, dados, contratos ou convenções, e quando houver ambiguidade.
+
+issue:
+  file: issues.md
+  prefix: ISS
+  digits: 3
+  sequence: issues
+  template: memory/issue.md
+  title: Problemas
+  description: Problemas já encontrados no projeto, com causa e solução. Consulte ao encontrar um erro, antes da primeira tentativa de correção.
+
+knowledge:
+  file: knowledge.md
+  prefix: KNW
+  digits: 3
+  sequence: knowledge
+  template: memory/knowledge.md
+  title: Conhecimentos
+  description: Descobertas e peculiaridades do projeto sem documentação primária. Consulte antes de pesquisar ou investigar um assunto pouco documentado.
+
+# Máximo de entradas impressas por uma busca com termos. As demais são omitidas com um aviso,
+# para uma busca com termos genéricos não despejar a memória inteira no contexto do agente.
+search_max_results: 5
+
+# Valores aceitos no campo Status de cada tipo. O primeiro é o valor inicial.
+decision_statuses:
+  - ativa
+  - substituída
+
+issue_statuses:
+  - aberto
+  - resolvido
+  - contornado
+
+knowledge_statuses:
+  - válido
+  - obsoleto
+
+# Valores aceitos no campo Categoria das issues.
+issue_categories:
+  - código         # erro de lógica, tipo ou execução no código do projeto
+  - build          # compilação, empacotamento, bundler
+  - dependência    # versão, instalação ou incompatibilidade de pacotes
+  - ambiente       # sistema operacional, WSL, shell, variáveis de ambiente
+  - configuração   # arquivos de configuração do projeto ou de ferramentas
+  - rede           # conectividade, portas, proxy, certificados
+  - permissão      # acesso a arquivos, credenciais, políticas
+  - teste          # falhas de teste, testes intermitentes
+  - dados          # banco, migrações, dados inconsistentes
+  - ferramenta     # limitações ou falhas do agente e das ferramentas dele
+  - desempenho     # lentidão, memória, timeouts
+
+# Front-matter dos arquivos de memória, criado por `vostok memory init`. Os `---` são adicionados pelo comando.
+# Variáveis: #{MEMORY_TYPE}, #{MEMORY_TITLE}, #{MEMORY_DESCRIPTION}, #{DATETIME} (ISO 8601, UTC).
+file_front_matter: |
+  type: #{MEMORY_TYPE}
+  title: "#{MEMORY_TITLE}"
+  description: "#{MEMORY_DESCRIPTION}"
+  updated_at: #{DATETIME}

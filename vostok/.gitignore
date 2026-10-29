@@ -1,0 +1,6 @@
+# Estado local de cada clone (ex.: commits liberados pelo usuário).
+.state/
+# Specs finalizadas e arquivadas (`paths.archive`).
+work/.archive/
+
+work/**/evidence

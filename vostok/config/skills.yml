@@ -1,0 +1,30 @@
+# Configurações das skills do harness (usadas pela skill create-skill).
+
+# Pastas das skills, relativas à raiz do harness.
+# `default` vem com o harness; `custom` é das skills criadas pelo usuário.
+dirs:
+  default: skills/default
+  custom: skills/custom
+
+# Templates, relativos a `paths.templates` (main.yml).
+template: skill/skill.md
+redirect_template: skill/redirect.md
+
+# Pastas onde é criado o redirecionamento para cada ferramenta, relativas a `paths.root` (main.yml).
+# O Cursor também lê `.claude/skills` e `.agents/skills`, por isso `.cursor/skills` fica desligado:
+# ativá-lo faria a skill aparecer duplicada no Cursor.
+redirect_dirs:
+  - .claude/skills   # Claude Code
+
+# Chaves do front-matter do SKILL.md copiadas para o redirecionamento.
+# As ferramentas decidem quando invocar a skill só por elas.
+redirect_keys:
+  - name
+  - description
+  - allowed-tools
+
+# Catálogo de skills, relativo à raiz do harness, e o título da seção de cada pasta.
+catalog: context/skill-catalog.md
+catalog_sections:
+  default: Padrão
+  custom: Customizadas

@@ -1,0 +1,88 @@
+# Configurações dos documentos HTML gerados pela finalização de specs (`vostok finalize`).
+# Os valores seguem o subconjunto de YAML lido pelo vostok: sem níveis além de `grupo.chave`
+# e com listas em itens `- valor`. Cores e fontes são a única fonte da identidade visual dos documentos.
+
+# Limite, em megabytes, para embutir uma evidência (imagem ou vídeo) no HTML em base64.
+# Acima dele, o arquivo vai para `assets/` ao lado do documento e é citado por link.
+embed_max_mb: 10
+
+# Extensões (sem o ponto) de cada tipo de evidência. O texto aparece escapado num bloco de código;
+# imagens e vídeos são embutidos até o limite; qualquer outra extensão vai para `assets/`.
+text_extensions:
+  - out
+  - txt
+  - log
+  - md
+  - json
+
+image_extensions:
+  - png
+  - jpg
+  - jpeg
+  - gif
+  - webp
+  - svg
+
+video_extensions:
+  - mp4
+  - webm
+
+# Tokens de cor. Cada chave vira a variável CSS `--<chave com hífens>` (ex.: color_surface_2 vira
+# `--color-surface-2`). Os documentos abrem no tema escuro (`:root`); o tema claro entra por
+# `data-theme="light"`. Paleta roxa derivada de docs/mapa-vostok.html, com a base do escuro um pouco mais clara.
+# `*_soft` são fundos suaves da mesma cor; `primary_ink` é o texto sobre a cor principal; `head*` são o
+# gradiente, o texto e o texto secundário do cabeçalho em faixa, escuro nos dois temas.
+dark:
+  color_bg: "#1a1528"
+  color_surface: "#231d35"
+  color_surface_2: "#2b2440"
+  color_ink: "#ece8f5"
+  color_muted: "#a39cb8"
+  color_line: "#3a3252"
+  color_primary: "#a78bfa"
+  color_primary_ink: "#150f22"
+  color_primary_soft: "#352a55"
+  color_ok: "#5ccf9f"
+  color_ok_soft: "#173027"
+  color_warn: "#f0a45a"
+  color_warn_soft: "#33251a"
+  color_crit: "#ef7b86"
+  color_crit_soft: "#3a1c22"
+  color_diff_add: "#5ccf9f"
+  color_diff_add_soft: "#173027"
+  color_diff_del: "#ef7b86"
+  color_diff_del_soft: "#3a1c22"
+  color_head: "#17112a"
+  color_head_2: "#34255c"
+  color_head_ink: "#f5f1ff"
+  color_head_muted: "#b9afd6"
+
+light:
+  color_bg: "#f7f5fb"
+  color_surface: "#ffffff"
+  color_surface_2: "#f1edf8"
+  color_ink: "#1d1729"
+  color_muted: "#6a6280"
+  color_line: "#e3ddee"
+  color_primary: "#6d28d9"
+  color_primary_ink: "#ffffff"
+  color_primary_soft: "#ede5fb"
+  color_ok: "#047857"
+  color_ok_soft: "#e3f4ec"
+  color_warn: "#b45309"
+  color_warn_soft: "#fdf1e3"
+  color_crit: "#b91c3c"
+  color_crit_soft: "#fbe5ea"
+  color_diff_add: "#047857"
+  color_diff_add_soft: "#e3f4ec"
+  color_diff_del: "#b91c3c"
+  color_diff_del_soft: "#fbe5ea"
+  color_head: "#1c1430"
+  color_head_2: "#38235f"
+  color_head_ink: "#ffffff"
+  color_head_muted: "#cdc2ee"
+
+# Fontes do sistema, sem requisições externas. Valem nos dois temas e viram `--font-<chave>`.
+font:
+  body: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
+  mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'

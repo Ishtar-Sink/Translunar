@@ -1,0 +1,185 @@
+# Configurações das especificações (specs).
+# Variáveis de template usam o formato `#{NOME}`. Valores com `#{` precisam de aspas.
+
+# ID no formato <prefixo>-<número com `digits` dígitos>. Ex.: SPEC-001.
+# O número vem de `specs` em `sequences.yml`.
+id:
+  prefix: SPEC
+  digits: 3
+
+# Valores do campo `status` no front-matter, em cada etapa.
+status:
+  draft: draft
+  refined: refined
+  approved: approved
+  planned: planned
+  implemented: implemented   # todas as tarefas da spec concluídas (vostok task finish)
+  archived: archived         # spec finalizada e arquivada (vostok finalize archive)
+
+# --- Rascunho (vostok spec new) ---
+
+# Template da nova spec, relativo a `paths.templates` (main.yml).
+template: spec/new.md
+
+# Pasta dentro de `paths.specs` (main.yml) onde a nova spec é criada.
+# A spec fica aqui como rascunho até ser aprovada.
+draft_dir: draft
+
+# Nome do arquivo criado em `draft_dir`.
+# Variáveis: #{SPEC_ID}, #{SPEC_SLUG} (título em minúsculas, sem acentos, separado por hífens).
+file_name: "#{SPEC_ID}-#{SPEC_SLUG}.md"
+
+# Front-matter que substitui `#{FRONT_MATTER}` no template. Os `---` são adicionados pelo script.
+# Variáveis: #{SPEC_ID}, #{SPEC_TITLE}, #{SPEC_STATUS} (status.draft), #{AUTHOR},
+# #{DATE} (AAAA-MM-DD), #{DATETIME} (ISO 8601, UTC).
+front_matter: |
+  id: #{SPEC_ID}
+  title: "#{SPEC_TITLE}"
+  status: #{SPEC_STATUS}
+  author: "#{AUTHOR}"
+  created_at: #{DATETIME}
+  updated_at: #{DATETIME}
+  tags: []
+
+# --- Refinada (vostok spec refine) ---
+
+# Template da spec refinada, relativo a `paths.templates` (main.yml). A variável #{SECTIONS}
+# recebe as seções do tipo da spec, lidas de `sections_dir`.
+refined_template: spec/refined.md
+
+# Pasta dos templates de seção da spec, relativa a `paths.templates`. Cada seção é um arquivo
+# `<seção>.md` que começa com o título `## ...` e tem uma variável para o conteúdo.
+sections_dir: spec/sections
+
+# Tipos de spec aceitos no refinamento.
+types:
+  - feature      # recurso novo
+  - improvement  # melhoria de algo que já existe
+  - fix          # correção de defeito
+  - study        # estudo ou investigação, sem entrega de código
+  - analysis     # análise de um problema ou de uma teoria, em tese, antítese e síntese
+
+# Seções da spec refinada de cada tipo, na ordem em que aparecem.
+# Núcleo presente em todos os tipos: objective, scope, assumptions, risks, acceptance-criteria, references.
+sections_feature:
+  - objective
+  - scope
+  - functional-requirements
+  - non-functional-requirements
+  - business-rules
+  - flows
+  - edge-cases
+  - contracts
+  - affected-components
+  - assumptions
+  - risks
+  - test-cases
+  - acceptance-criteria
+  - references
+
+sections_improvement:
+  - objective
+  - current-state
+  - scope
+  - functional-requirements
+  - non-functional-requirements
+  - business-rules
+  - flows
+  - edge-cases
+  - contracts
+  - affected-components
+  - assumptions
+  - risks
+  - test-cases
+  - acceptance-criteria
+  - references
+
+sections_fix:
+  - objective
+  - defect
+  - scope
+  - functional-requirements
+  - edge-cases
+  - affected-components
+  - assumptions
+  - risks
+  - test-cases
+  - acceptance-criteria
+  - references
+
+sections_study:
+  - objective
+  - scope
+  - research-questions
+  - assumptions
+  - risks
+  - acceptance-criteria
+  - references
+
+sections_analysis:
+  - objective
+  - scope
+  - thesis
+  - antithesis
+  - synthesis
+  - assumptions
+  - risks
+  - acceptance-criteria
+  - references
+
+# Pasta dentro de `paths.specs` (main.yml) onde a spec refinada é criada, com o mesmo nome do rascunho.
+refined_dir: refined
+
+# Front-matter da spec refinada: parte do front-matter do rascunho, e as chaves abaixo
+# substituem as de mesmo nome ou são acrescentadas no fim.
+# Variáveis: #{SPEC_STATUS} (status.refined), #{SPEC_TYPE} (um dos `types`),
+# #{SOURCE_PATH} (rascunho, relativo a `paths.specs`), #{DATE} (AAAA-MM-DD), #{DATETIME} (ISO 8601, UTC).
+refined_front_matter: |
+  type: #{SPEC_TYPE}
+  status: #{SPEC_STATUS}
+  source: "#{SOURCE_PATH}"
+  refined_at: #{DATETIME}
+  updated_at: #{DATETIME}
+  adjustments: 0
+  adjusted_at: null
+
+# Campo do front-matter da refinada com o hash do conteúdo que vem depois do front-matter.
+# Gravado ao marcar a spec como refinada e a cada ajuste; um hash diferente indica edição manual.
+content_hash_field: content_hash
+
+# --- Ajuste (vostok spec adjust) ---
+
+# Seção fixa do histórico de ajustes, em `sections_dir`. Ela fica no fim da refinada e
+# recebe uma linha por ajuste, sempre escrita pelo script.
+adjustment_history_section: adjustment-history
+
+# Origem registrada no histórico: edição feita à mão ou ajuste feito pelo agente.
+adjustment_origins:
+  manual: manual
+  agent: agente
+
+# Resumo de um ajuste manual. Se o arquivo estiver versionado no git, o script acrescenta
+# as seções alteradas desde o último commit. Ex.: "Edição manual: Riscos, Casos de teste".
+manual_adjustment_summary: Edição manual
+
+# Título da seção de pendências da refinada (templates/spec/refined.md), sem `## `.
+# Uma pendência aberta é uma linha de dados cuja primeira coluna é diferente de `-`.
+pending_heading: Pendências
+
+# --- Aprovação (vostok spec approve) ---
+
+# Campos do front-matter gravados na aprovação: a data e o hash do conteúdo aprovado
+# (igual a `content_hash_field` no momento da aprovação). Um ajuste grava `null` nos dois.
+approved_at_field: approved_at
+approved_hash_field: approved_hash
+
+# --- Finalização (vostok finalize) ---
+
+# Template do arquivo de conteúdo dos documentos, relativo a `paths.templates` (main.yml).
+finalize_content_template: finalize/content.md
+
+# Nomes dos documentos HTML gerados para cada spec.
+finalize_documents:
+  executive: executivo.html
+  technical: tecnico.html
+  evidence: evidencias.html

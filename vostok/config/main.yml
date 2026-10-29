@@ -1,0 +1,21 @@
+# Configurações gerais do harness.
+# Caminhos relativos partem da raiz do harness (a pasta que contém `config/`).
+
+paths:
+  root: ../
+  specs: ./work/specs
+  plans: ./work/plans
+  tasks: ./work/tasks
+  templates: ./templates
+  docs: ../docs
+  agent_memory: ./memory
+  state: ./.state          # estado local de cada clone, fora do git
+  archive: ./work/.archive    # specs finalizadas, com tarefas e evidências, fora do git
+  finalize: ./work/finalize    # conteúdo e documentos de uma spec antes do arquivamento
+  spec_docs: ../docs/specs
+  bugs: ./work/bugs          # relatos de defeitos do próprio harness (skill report-harness-bug)
+
+# Repositório das issues de defeitos do próprio harness (skills report-harness-bug e
+# validate-harness-bug e subcomando `vostok bug link`).
+harness:
+  repository: Ishtar-Sink/Vostok
