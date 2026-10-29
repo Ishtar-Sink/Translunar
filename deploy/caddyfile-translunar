@@ -1,0 +1,6 @@
+# Translunar — painel de legendas, importado pelo /opt/homebrew/etc/Caddyfile do server.
+# O painel escuta só em 127.0.0.1:8770; o acesso de fora passa por aqui, em HTTPS.
+translunar.local, 192.168.2.17:8771 {
+	tls internal
+	reverse_proxy 127.0.0.1:8770
+}

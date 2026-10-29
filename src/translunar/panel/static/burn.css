@@ -1,0 +1,70 @@
+/* Bloco "Idiomas e queima" da Revisão. Só usa variáveis de tokens.css. */
+
+.burn-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.burn-item {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 2);
+  padding: calc(var(--space) * 3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.burn-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--space) * 2);
+}
+
+.burn-check {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space) * 2);
+  cursor: pointer;
+}
+
+.burn-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.burn-check input:disabled {
+  cursor: not-allowed;
+}
+
+.burn-lang {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.burn-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.burn-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.burn-item .form-error {
+  margin: 0;
+}
+
+.burn-item .btn:disabled {
+  cursor: default;
+}

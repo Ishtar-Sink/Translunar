@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Translunar</title>
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/clips.css">
+  <link rel="stylesheet" href="/static/review.css">
+  <link rel="stylesheet" href="/static/storage.css">
+  <link rel="stylesheet" href="/static/burn.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <section id="login" class="login" hidden>
+    <form id="login-form" class="card login-card" autocomplete="off">
+      <h1 class="brand brand-large">Translunar</h1>
+      <p class="page-eyebrow">Painel de legendas</p>
+      <label class="field">
+        <span class="field-label">Senha</span>
+        <input id="login-senha" type="password" name="senha" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+      <p id="login-erro" class="form-error" role="alert" hidden></p>
+    </form>
+  </section>
+
+  <div id="painel" hidden>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" focusable="false"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </span>
+          <span class="brand brand-name">Translunar</span>
+        </div>
+        <nav id="nav" class="nav" aria-label="Principal"></nav>
+        <div class="sidebar-footer">
+          <button type="button" id="btn-sair" class="nav-item">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            <span>Sair</span>
+          </button>
+          <button type="button" id="btn-tema" class="nav-item" aria-label="Alternar tema claro e escuro">
+            <span id="btn-tema-icone" class="nav-icon"></span>
+            <span id="btn-tema-rotulo">Tema escuro</span>
+          </button>
+        </div>
+      </aside>
+      <div class="page">
+        <header class="page-header">
+          <h1 id="pagina-titulo" class="page-heading"></h1>
+          <p id="pagina-subtitulo" class="page-subtitle"></p>
+        </header>
+        <main id="conteudo" class="content">
+          <p id="estado-vazio" class="empty-state">Nenhuma seção disponível ainda.</p>
+          <!-- Seções: cada tarefa acrescenta a sua <section> abaixo desta linha. -->
+          <section id="acervo" hidden></section>
+          <section id="revisao" hidden></section>
+          <section id="armazenamento" hidden></section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+
+  <!-- Módulos: cada tarefa acrescenta o seu <script type="module"> abaixo desta linha. -->
+  <script type="module" src="/static/clips.js"></script>
+  <script type="module" src="/static/review.js"></script>
+  <script type="module" src="/static/storage.js"></script>
+  <script type="module" src="/static/burn.js"></script>
+</body>
+</html>

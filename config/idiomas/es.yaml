@@ -1,0 +1,8 @@
+codigo: es
+nome: Espanhol
+variante: espanhol neutro (latino-americano)
+publico: hispanofalantes de vários países, sem regionalismos
+registro: segue o do original, natural e conversacional
+regras:
+  - não usar vosotros
+  - evitar gírias de um país específico

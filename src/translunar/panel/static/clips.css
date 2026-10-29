@@ -1,0 +1,297 @@
+/* Acervo: área de envio e cartões dos cortes. Só usa variáveis de tokens.css. */
+
+#acervo {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 5);
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--space) * 1);
+  padding: calc(var(--space) * 8) calc(var(--space) * 4);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: background 120ms cubic-bezier(0.4, 0, 0.2, 1), border-color 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropzone:hover,
+.dropzone-ativa {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.dropzone:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.dropzone-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dropzone-hint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 3);
+}
+
+.upload-list:empty {
+  display: none;
+}
+
+.upload-row {
+  padding: calc(var(--space) * 3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.upload-top {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--space) * 3);
+  margin-bottom: calc(var(--space) * 2);
+  font-size: 14px;
+}
+
+.upload-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.upload-status {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.upload-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+}
+
+.upload-bar {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gradient);
+  transition: width 120ms linear;
+}
+
+.upload-ok .upload-status {
+  color: var(--success);
+}
+
+.upload-erro {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.upload-erro .upload-status {
+  color: var(--danger);
+}
+
+.upload-erro .upload-bar {
+  background: var(--danger);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: calc(var(--space) * 0.5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+
+.segmented-item {
+  padding: calc(var(--space) * 1) calc(var(--space) * 3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented-item:hover {
+  color: var(--text);
+}
+
+.segmented-item[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-on);
+}
+
+.clip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: calc(var(--space) * 4);
+}
+
+.clip-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--space) * 2);
+}
+
+.clip-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Área da miniatura igual em todos os cartões; dentro dela, a moldura tem o formato escolhido. */
+.clip-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  background: var(--surface-muted);
+}
+
+.clip-frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 9 / 16;
+  height: 100%;
+  overflow: hidden;
+}
+
+.clip-card-16x9 .clip-frame {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  height: auto;
+}
+
+/* Num formato diferente do vídeo, as bordas são cortadas e a imagem fica centralizada. */
+.clip-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clip-thumb-vazia {
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.clip-busy {
+  position: absolute;
+  top: calc(var(--space) * 2);
+  left: calc(var(--space) * 2);
+  padding: calc(var(--space) * 0.5) calc(var(--space) * 2.5);
+  border-radius: var(--radius-pill);
+  background: var(--info-soft);
+  color: var(--info);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.clip-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(var(--space) * 2);
+  padding: calc(var(--space) * 3) calc(var(--space) * 3.5) calc(var(--space) * 3.5);
+}
+
+.clip-name {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.clip-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.clip-alert {
+  margin: 0;
+  padding: calc(var(--space) * 1.5) calc(var(--space) * 2.5);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.clip-alert-warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.clip-alert-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.clip-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) * 1.5);
+}
+
+.badge {
+  padding: calc(var(--space) * 0.5) calc(var(--space) * 2.5);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.badge-info {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.badge-muted {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.clip-open {
+  margin-top: auto;
+}

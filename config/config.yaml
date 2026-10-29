@@ -1,0 +1,31 @@
+# Configuração do Translunar. Para valores que mudam por máquina (ex.: caminho do ffmpeg-full
+# no server), crie config/config.local.yaml (fora do git) só com as chaves a sobrepor.
+pasta_dados: ~/translunar-dados
+transcricao:
+  modelo: mlx-community/whisper-large-v3-turbo
+legenda:
+  max_linhas: 2
+  max_caracteres_linha: 32
+  max_cps: 17
+  duracao_min_s: 1.0
+  duracao_max_s: 6.0
+estilo:
+  fonte: assets/fonts/Inter-Bold.ttf
+  negrito: true
+  cor_texto: "#FFFFFF"
+  cor_contorno: "#000000"
+  tamanho_pct_largura: 5.8
+  margem_inferior_pct: 20
+  margem_lateral_pct: 8
+queima:
+  ffmpeg: ffmpeg
+  ffprobe: ffprobe
+  preset: veryfast
+  crf: 20
+  jobs: 2
+painel:
+  host: 127.0.0.1
+  porta: 8770
+  limite_upload_mb: 2048
+  tentativas_login: 5
+  bloqueio_login_min: 15

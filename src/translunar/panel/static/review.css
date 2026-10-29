@@ -1,0 +1,133 @@
+/* Revisão: player com legenda, editor e contexto. Só usa variáveis de tokens.css. */
+
+.review {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px) minmax(0, 1fr);
+  gap: calc(var(--space) * 5);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .review {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.review-player {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 3);
+  padding: calc(var(--space) * 3);
+}
+
+.review-frame {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.review-video {
+  display: block;
+  width: 100%;
+  max-height: 72vh;
+  background: var(--surface-muted);
+}
+
+/* Legenda da prévia: igual à queima (branco, contorno preto, Inter em negrito, sem fundo).
+   As cores ficam fixas de propósito: a legenda não segue o tema (config.yaml > estilo). */
+.review-video::cue {
+  font-family: "Inter", sans-serif;
+  font-weight: 700;
+  font-size: var(--cue-size, 16px);
+  line-height: 1.2;
+  color: #ffffff;
+  background-color: transparent;
+  text-shadow:
+    -2px -2px 0 #000000, 0 -2px 0 #000000, 2px -2px 0 #000000,
+    -2px 0 0 #000000, 2px 0 0 #000000,
+    -2px 2px 0 #000000, 0 2px 0 #000000, 2px 2px 0 #000000;
+}
+
+.review-note,
+.review-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.review-side {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 4);
+  min-width: 0;
+}
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 3);
+  padding: calc(var(--space) * 4);
+}
+
+.review-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.review-state {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) * 2);
+}
+
+.review-path-row {
+  display: flex;
+  gap: calc(var(--space) * 2);
+}
+
+.review-input {
+  width: 100%;
+  min-width: 0;
+  padding: calc(var(--space) * 2) calc(var(--space) * 3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.review-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.review-input:disabled {
+  background: var(--surface-muted);
+  color: var(--text-faint);
+}
+
+.review-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+.review-editor {
+  min-height: 260px;
+  resize: vertical;
+}
+
+.review-context {
+  min-height: 110px;
+  resize: vertical;
+}

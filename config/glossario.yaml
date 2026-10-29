@@ -1,0 +1,6 @@
+# Termos com tradução fixa. `traducoes` vazio: o termo nunca é traduzido (RN-07).
+termos:
+  - termo: Ishtar Sink
+    traducoes: {}
+  - termo: Translunar
+    traducoes: {}

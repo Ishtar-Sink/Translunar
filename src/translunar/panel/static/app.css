@@ -1,0 +1,429 @@
+/* Layout base do painel. Cores, raios e fontes vêm de tokens.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -1.6px;
+  line-height: 1.05;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0 0 calc(var(--space) * 3);
+}
+
+.page-eyebrow {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0;
+}
+
+.brand-large {
+  font-size: 44px;
+  letter-spacing: -1.6px;
+  line-height: 1.05;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: calc(var(--space) * 6);
+}
+
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--space) * 4);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 1.5);
+}
+
+.field-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+input[type="password"],
+input[type="text"] {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: calc(var(--space) * 2.5) calc(var(--space) * 3);
+  box-shadow: var(--shadow-sm);
+}
+
+input:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: calc(var(--space) * 2.5) calc(var(--space) * 5);
+  cursor: pointer;
+  transition: background 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-on);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--primary);
+  border-color: var(--border-strong);
+  padding: calc(var(--space) * 1.5) calc(var(--space) * 4);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-hover);
+}
+
+.form-error {
+  margin: 0;
+  padding: calc(var(--space) * 2) calc(var(--space) * 3);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 5);
+  height: 100vh;
+  padding: calc(var(--space) * 5) calc(var(--space) * 3);
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 2.5);
+  padding: 0 calc(var(--space) * 2);
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-gradient);
+  box-shadow: var(--shadow-md);
+  color: var(--primary-on);
+}
+
+.brand-mark svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-name {
+  font-size: 22px;
+}
+
+.nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(var(--space) * 1);
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 1);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 3);
+  width: 100%;
+  min-height: 42px;
+  padding: 0 calc(var(--space) * 3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms cubic-bezier(0.4, 0, 0.2, 1), color 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.nav-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.nav-item.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+:root[data-theme="dark"] .nav-item.active {
+  color: var(--primary-hover);
+}
+
+.nav-icon {
+  display: inline-flex;
+}
+
+.icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.page {
+  min-width: 0;
+}
+
+.page-header {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: calc(var(--space) * 8) calc(var(--space) * 6) 0;
+}
+
+.page-heading {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.page-subtitle {
+  margin: calc(var(--space) * 1.5) 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.empty-state {
+  margin: 0;
+  padding: calc(var(--space) * 10) calc(var(--space) * 4);
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.content {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: calc(var(--space) * 5) calc(var(--space) * 4);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) * 5);
+}
+
+.content > section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: calc(var(--space) * 5);
+}
+
+.toasts {
+  position: fixed;
+  right: calc(var(--space) * 4);
+  bottom: calc(var(--space) * 4);
+  left: calc(var(--space) * 4);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(var(--space) * 2);
+  pointer-events: none;
+}
+
+.toast {
+  max-width: 100%;
+  padding: calc(var(--space) * 3) calc(var(--space) * 4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  background: var(--info-soft);
+  color: var(--info);
+  font-size: 14px;
+}
+
+.toast-sucesso {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.toast-aviso {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.toast-erro {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .app {
+    display: block;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--space) * 2);
+    padding: calc(var(--space) * 2) calc(var(--space) * 3);
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav {
+    flex-direction: row;
+    flex: 1 1 100%;
+    order: 3;
+    overflow-x: auto;
+  }
+
+  .sidebar-footer {
+    flex-direction: row;
+    margin-left: auto;
+  }
+
+  .nav-item {
+    width: auto;
+    min-height: 38px;
+    white-space: nowrap;
+  }
+
+  .sidebar-footer .nav-item span:not(.nav-icon):not(#btn-tema-rotulo),
+  #btn-sair span {
+    display: none;
+  }
+
+  #btn-tema-rotulo {
+    display: none;
+  }
+
+  .page-header {
+    padding: calc(var(--space) * 5) calc(var(--space) * 3) 0;
+  }
+
+  .page-heading {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title,
+  .brand-large {
+    font-size: 36px;
+    letter-spacing: -1.2px;
+  }
+
+  .card {
+    padding: calc(var(--space) * 4);
+  }
+
+  .content {
+    padding: calc(var(--space) * 3);
+  }
+}

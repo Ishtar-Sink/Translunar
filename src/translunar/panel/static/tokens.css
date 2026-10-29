@@ -1,0 +1,103 @@
+/* Tokens da identidade Ishtar Sink. Origem: Ishtar-Sink/.github docs/identidade-ecossistema.md (seção Tokens, revisão 2026-10). Não edite valores aqui sem mudar a origem; substituir pelo pacote de tema quando ele existir. */
+
+:root,
+[data-theme="light"] {
+  --bg: #F3F0FA;
+  --bg-elevated: #FAF8FE;
+  --surface: #FFFFFF;
+  --surface-muted: #EAE5F6;
+  --surface-hover: #E1DAF2;
+  --border: #D9D1EC;
+  --border-strong: #BFB3DD;
+  --elevation-1: #FFFFFF;
+  --elevation-2: #FFFFFF;
+  --elevation-3: #FFFFFF;
+  --primary: #6D28D9;
+  --primary-hover: #5B21B6;
+  --primary-bright: #A855F7;
+  --primary-soft: #EBE0FD;
+  --primary-on: #FFFFFF;
+  --accent: #0E7490;
+  --accent-fill: #06B6D4;
+  --accent-bright: #22D3EE;
+  --accent-soft: #D8F1F6;
+  --text: #1A1230;
+  --text-muted: #4F4469;
+  --text-faint: #8B84A3;
+  --success: #047857;
+  --success-soft: #D9F3E7;
+  --warning: #92400E;
+  --warning-soft: #FCEFCF;
+  --danger: #BE123C;
+  --danger-soft: #FDE2E9;
+  --info: #0369A1;
+  --info-soft: #DAEEFB;
+  --shadow-sm: 0 1px 2px rgba(42, 24, 96, 0.08);
+  --shadow-md: 0 4px 12px rgba(42, 24, 96, 0.10), 0 1px 3px rgba(42, 24, 96, 0.06);
+  --shadow-lg: 0 18px 44px rgba(42, 24, 96, 0.20), 0 4px 12px rgba(42, 24, 96, 0.08);
+}
+
+[data-theme="dark"] {
+  --bg: #0B0816;
+  --bg-elevated: #110B21;
+  --surface: #181028;
+  --surface-muted: #130D22;
+  --surface-hover: #241A3D;
+  --border: #2F2250;
+  --border-strong: #45337A;
+  --elevation-1: #181028;
+  --elevation-2: #201638;
+  --elevation-3: #2A1D4A;
+  --primary: #A78BFA;
+  --primary-hover: #C4B5FD;
+  --primary-bright: #C084FC;
+  --primary-soft: #2B1D52;
+  --primary-on: #12082B;
+  --accent: #22D3EE;
+  --accent-fill: #06B6D4;
+  --accent-bright: #67E8F9;
+  --accent-soft: #0F3342;
+  --text: #F5F1FF;
+  --text-muted: #B1A5CF;
+  --text-faint: #7A6C9E;
+  --success: #34D399;
+  --success-soft: #0E2E27;
+  --warning: #FBBF24;
+  --warning-soft: #33260B;
+  --danger: #FB7185;
+  --danger-soft: #3A1222;
+  --info: #38BDF8;
+  --info-soft: #0C2C42;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.50), 0 0 0 1px rgba(167, 139, 250, 0.08);
+  --shadow-lg: 0 22px 52px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(167, 139, 250, 0.14);
+}
+
+/* Escalas compartilhadas (iguais nos dois temas). */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+  --space: 4px;
+  --brand-gradient: linear-gradient(135deg, #7C3AED, #06B6D4);
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/static/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('/static/fonts/Outfit-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

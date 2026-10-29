@@ -1,0 +1,55 @@
+[project]
+name = "translunar"
+version = "0.1.0"
+description = "Pipeline de legendas multilíngues para vídeo vertical"
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "python-multipart>=0.0.9",
+  "pyyaml>=6.0",
+  "itsdangerous>=2.2",
+]
+
+[project.optional-dependencies]
+mac = ["mlx-whisper>=0.4; sys_platform == 'darwin' and platform_machine == 'arm64'"]
+
+[project.scripts]
+legendar = "translunar.cli:run"
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "httpx>=0.27",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "types-PyYAML>=6.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/translunar"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+# O ruff 0.17 formata blocos Python dentro de Markdown: fica fora do harness e da documentação (KNW-002).
+extend-exclude = ["*.md", "vostok", ".claude"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["ffmpeg: precisa do ffmpeg com libass no PATH"]
