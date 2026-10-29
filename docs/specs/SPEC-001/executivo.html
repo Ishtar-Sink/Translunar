@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPEC-001 · Resumo executivo · MVP — Pipeline de legendas multilíngues</title>
+<style>
+:root {
+  color-scheme: dark;
+  --color-bg: #1a1528;
+  --color-surface: #231d35;
+  --color-surface-2: #2b2440;
+  --color-ink: #ece8f5;
+  --color-muted: #a39cb8;
+  --color-line: #3a3252;
+  --color-primary: #a78bfa;
+  --color-primary-ink: #150f22;
+  --color-primary-soft: #352a55;
+  --color-ok: #5ccf9f;
+  --color-ok-soft: #173027;
+  --color-warn: #f0a45a;
+  --color-warn-soft: #33251a;
+  --color-crit: #ef7b86;
+  --color-crit-soft: #3a1c22;
+  --color-diff-add: #5ccf9f;
+  --color-diff-add-soft: #173027;
+  --color-diff-del: #ef7b86;
+  --color-diff-del-soft: #3a1c22;
+  --color-head: #17112a;
+  --color-head-2: #34255c;
+  --color-head-ink: #f5f1ff;
+  --color-head-muted: #b9afd6;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #f7f5fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1edf8;
+  --color-ink: #1d1729;
+  --color-muted: #6a6280;
+  --color-line: #e3ddee;
+  --color-primary: #6d28d9;
+  --color-primary-ink: #ffffff;
+  --color-primary-soft: #ede5fb;
+  --color-ok: #047857;
+  --color-ok-soft: #e3f4ec;
+  --color-warn: #b45309;
+  --color-warn-soft: #fdf1e3;
+  --color-crit: #b91c3c;
+  --color-crit-soft: #fbe5ea;
+  --color-diff-add: #047857;
+  --color-diff-add-soft: #e3f4ec;
+  --color-diff-del: #b91c3c;
+  --color-diff-del-soft: #fbe5ea;
+  --color-head: #1c1430;
+  --color-head-2: #38235f;
+  --color-head-ink: #ffffff;
+  --color-head-muted: #cdc2ee;
+}
+* { box-sizing: border-box; }
+html { background: var(--color-bg); }
+body {
+  margin: 0; background: var(--color-bg); color: var(--color-ink);
+  font: 400 14px/1.55 var(--font-body); -webkit-font-smoothing: antialiased;
+}
+code { font: .92em var(--font-mono); background: var(--color-surface-2); padding: 1px 5px; border-radius: 4px; }
+p { margin: 0 0 12px; }
+h2 { font-size: 20px; margin: 0 0 5px; letter-spacing: -.015em; text-wrap: pretty; }
+h3 { font-size: 15px; margin: 0 0 8px; letter-spacing: -.008em; }
+
+/* Cabeçalho em faixa */
+.hd { background: linear-gradient(160deg, var(--color-head) 0%, var(--color-head-2) 100%); color: var(--color-head-ink);
+      padding: 20px clamp(16px, 4vw, 40px) 0; }
+.hd-top, .hd-body { max-width: 1120px; margin: 0 auto; }
+.hd-top { display: flex; align-items: center; gap: 12px; }
+.mark { width: 26px; height: 26px; flex: none; }
+.wm { font-weight: 700; font-size: 15px; letter-spacing: -.01em; line-height: 1.15; }
+.wm small { display: block; font-weight: 500; font-size: 11px; color: var(--color-head-muted); letter-spacing: .02em; }
+.hd-sp { flex: 1; }
+.tbtn { background: rgba(255,255,255,.09); color: var(--color-head-ink); border: 1px solid rgba(255,255,255,.18);
+        border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 12px; cursor: pointer; }
+.tbtn:hover { background: rgba(255,255,255,.17); }
+.tbtn:focus-visible { outline: 2px solid var(--color-head-muted); outline-offset: 2px; }
+.hd-body { padding: 26px 0 28px; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--color-head-muted); margin: 0 0 9px; }
+.hd-body h1 { font-size: clamp(26px, 3.5vw, 35px); line-height: 1.12; margin: 0 0 12px; letter-spacing: -.024em; text-wrap: pretty; }
+.lede { font-size: 14.5px; color: var(--color-head-muted); max-width: 900px; }
+.lede p:last-child { margin-bottom: 0; }
+.lede strong { color: var(--color-head-ink); font-weight: 600; }
+.lede code { background: rgba(255,255,255,.1); color: var(--color-head-ink); }
+
+.na { color: var(--color-muted); font-style: italic; }
+
+/* Abas */
+.nav { position: sticky; top: 0; z-index: 20; background: var(--color-surface); border-bottom: 1px solid var(--color-line); }
+.nav-in { max-width: 1120px; margin: 0 auto; display: flex; gap: 2px; padding: 0 clamp(16px, 4vw, 40px); overflow-x: auto; }
+.nav a { display: block; padding: 12px 12px 10px; font-size: 12.5px; color: var(--color-muted); text-decoration: none;
+         border-bottom: 2px solid transparent; white-space: nowrap; }
+.nav a:hover { color: var(--color-ink); }
+.nav a.on { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+.nav a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -3px; border-radius: 3px; }
+
+main { max-width: 1120px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 56px; }
+.panel { padding: 30px 0 8px; }
+.tabs .panel:not(.on) { display: none; }
+.sec-h { margin: 0 0 18px; }
+.sec-h > p { color: var(--color-muted); font-size: 13.5px; margin: 6px 0 0; }
+.block { margin-top: 26px; }
+
+/* Indicadores */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--color-line);
+        border: 1px solid var(--color-line); border-radius: 14px; overflow: hidden; margin: 0 0 20px; }
+.kpi { background: var(--color-surface); padding: 15px 17px; }
+.kpi b { display: block; font-size: 26px; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi b small { font-size: 15px; font-weight: 500; color: var(--color-muted); letter-spacing: 0; }
+.kpi span { display: block; font-size: 11.5px; color: var(--color-muted); margin-top: 4px; }
+
+/* Tabelas */
+.tw { overflow-x: auto; border: 1px solid var(--color-line); border-radius: 14px; background: var(--color-surface); margin: 0 0 14px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); font-weight: 700;
+     padding: 11px 14px; border-bottom: 1px solid var(--color-line); background: var(--color-surface-2); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--color-line); font-size: 13.5px; vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.strong { font-weight: 600; }
+
+/* Etiquetas e notas */
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px;
+       white-space: nowrap; background: var(--color-surface-2); color: var(--color-muted); }
+.tag.alto { background: var(--color-primary-soft); color: var(--color-primary); }
+.tag.medio { background: var(--color-ok-soft); color: var(--color-ok); }
+.tag.baixo { background: var(--color-surface-2); color: var(--color-muted); }
+.note { background: var(--color-primary-soft); border-radius: 9px; padding: 15px 18px; font-size: 13.5px; margin: 20px 0 0; }
+.note > b:first-child { display: block; text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em; margin-bottom: 4px; color: var(--color-primary); }
+.note p:last-child, .note ul:last-child, .note ol:last-child { margin-bottom: 0; }
+.note ul, .note ol { margin: 0 0 10px; padding-left: 20px; }
+.note.warn { background: var(--color-warn-soft); }
+.note.warn > b:first-child { color: var(--color-warn); }
+
+/* Cartões das entregas */
+.cards { display: grid; gap: 10px; }
+details.card { background: var(--color-surface); border: 1px solid var(--color-line); border-left: 3px solid var(--color-line);
+               border-radius: 9px; overflow: hidden; }
+details.card.impact-alto { border-left-color: var(--color-primary); }
+details.card.impact-medio { border-left-color: var(--color-ok); }
+details.card > summary { display: flex; align-items: baseline; gap: 11px; flex-wrap: wrap; padding: 15px 18px; cursor: pointer; list-style: none; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::before { content: "+"; font-family: var(--font-mono); color: var(--color-primary); font-weight: 700; flex: none; width: 11px; }
+details.card[open] > summary::before { content: "\2212"; }
+details.card > summary > b { font-size: 14.5px; letter-spacing: -.008em; flex: 1; min-width: 200px; }
+details.card > summary:hover { background: var(--color-surface-2); }
+details.card > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+details.card[open] > summary { border-bottom: 1px solid var(--color-line); }
+.card-body { padding: 14px 18px 16px 40px; color: var(--color-muted); font-size: 13.5px; }
+.card-body p { margin: 0 0 10px; }
+.card-body p:last-child { margin-bottom: 0; }
+.card-body p > b:first-child { display: block; text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em;
+                               color: var(--color-ink); opacity: .7; margin-bottom: 2px; font-weight: 700; }
+.ctl { display: flex; gap: 8px; justify-content: flex-end; margin: -6px 0 12px; }
+.ctl button { font: inherit; font-size: 12px; color: var(--color-muted); background: none; border: 1px solid var(--color-line);
+              border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+.ctl button:hover { color: var(--color-ink); border-color: var(--color-primary); }
+
+/* Conteúdo em Markdown */
+.md { font-size: 14px; }
+.md ul, .md ol { margin: 0 0 12px; padding-left: 22px; }
+.md li { margin: 4px 0; }
+.md li::marker { color: var(--color-primary); }
+
+/* Linha do tempo */
+.timeline { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 2px solid var(--color-line); display: grid; gap: 10px; }
+.timeline li { position: relative; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: baseline; font-size: 13.5px; }
+.timeline li::before { content: ""; position: absolute; left: -25px; top: 6px; width: 10px; height: 10px; border-radius: 50%;
+                       background: var(--color-bg); border: 2px solid var(--color-primary); }
+.timeline li.pending::before { border-color: var(--color-muted); }
+.timeline .date { font: 500 12px/1.4 var(--font-mono); color: var(--color-muted); }
+.timeline .task { overflow-wrap: anywhere; }
+.timeline .id { font: 700 11.5px var(--font-mono); color: var(--color-primary); margin-right: 6px; }
+
+footer { max-width: 1120px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 44px; border-top: 1px solid var(--color-line);
+         color: var(--color-muted); font-size: 12px; }
+
+@media (max-width: 640px) {
+  .card-body { padding-left: 18px; }
+  .timeline li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+@page { margin: 0; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tbtn, .nav, .ctl { display: none; }
+  .tabs .panel:not(.on), .panel { display: block; }
+  .panel + .panel { break-before: page; padding-top: 14mm; }
+  main { padding-bottom: 14mm; }
+  details.card, .kpi, .timeline li, tr { break-inside: avoid; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="hd-top">
+    <svg class="mark" viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="6" fill="currentColor"/>
+      <ellipse cx="13" cy="13" rx="12" ry="4.5" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".55" transform="rotate(-24 13 13)"/>
+    </svg>
+    <div class="wm">Vostok<small>Harness · finalização de spec</small></div>
+    <div class="hd-sp"></div>
+    <button type="button" class="tbtn" id="theme-toggle" aria-pressed="false">Tema claro</button>
+  </div>
+  <div class="hd-body">
+    <p class="eyebrow">Resumo executivo · SPEC-001 · aprovada em 2026-10-29 · concluída em 2026-10-29</p>
+    <h1>MVP — Pipeline de legendas multilíngues</h1>
+    <div class="lede">
+<p>O Translunar agora leva um corte vertical em português até <strong>vídeos legendados em inglês, espanhol e francês</strong>, prontos para Reels, TikTok, Shorts e X. Tudo acontece num <strong>painel web privado</strong>, no servidor pessoal: subir o corte, transcrever, revisar com prévia, queimar a legenda e baixar. A tradução é feita pelo Claude Code, que <strong>adapta as expressões ao público de cada idioma</strong> em vez de traduzir ao pé da letra. A validação final foi feita com um corte real de <strong>94 segundos</strong>, aprovado no celular.</p>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Seções">
+  <div class="nav-in" role="tablist">
+    <a href="#p-panorama" role="tab" data-tab="panorama">Panorama</a>
+    <a href="#p-entregas" role="tab" data-tab="entregas">Entregas</a>
+    <a href="#p-antes-e-depois" role="tab" data-tab="antes-e-depois">Antes e depois</a>
+    <a href="#p-execucao" role="tab" data-tab="execucao">Execução</a>
+    <a href="#p-proximos-passos" role="tab" data-tab="proximos-passos">Próximos passos</a>
+  </div>
+</nav>
+
+<main id="main">
+  <section class="panel" id="p-panorama" role="tabpanel" data-panel="panorama">
+    <div class="sec-h"><h2>O que foi entregue</h2><p>As entregas desta spec e o valor de cada uma.</p></div>
+<div class="kpis">
+<div class="kpi"><b>Idiomas entregues por corte</b><span><strong>3</strong> (inglês, espanhol e francês), com um idioma novo exigindo só um arquivo de perfil</span></div>
+<div class="kpi"><b>Legendas aprovadas na primeira validação</b><span><strong>27 de 27</strong> em cada idioma no corte real; <strong>7 de 7</strong> no corte de teste</span></div>
+<div class="kpi"><b>Checklist de qualidade no celular</b><span><strong>5 de 5</strong> itens aprovados: legibilidade, sincronia, adaptação, variantes e prévia igual ao vídeo final</span></div>
+<div class="kpi"><b>Testes automáticos</b><span><strong>206</strong> aprovados ao fim da entrega</span></div>
+<div class="kpi"><b>Tarefas entregues</b><span><strong>18 de 18</strong>, todas com evidência</span></div>
+</div>
+<div class="tw"><table>
+<thead><tr><th>Entrega</th><th>Impacto</th><th>Valor</th></tr></thead>
+<tbody>
+<tr><td class="strong">Painel web privado</td><td><span class="tag alto">Impacto alto</span></td><td>o fluxo inteiro passa a ser feito no navegador, sem terminal e sem editar arquivos à mão.</td></tr>
+<tr><td class="strong">Transcrição local com revisão e prévia</td><td><span class="tag alto">Impacto alto</span></td><td>erros de transcrição são corrigidos uma vez, na origem, antes de chegarem aos três idiomas; nenhum áudio sai da casa.</td></tr>
+<tr><td class="strong">Tradução com localização pelo Claude Code</td><td><span class="tag alto">Impacto alto</span></td><td>a legenda em cada idioma soa natural para quem assiste, mantendo o tempo exato da fala; no corte real, as referências políticas e o humor foram adaptados nos três idiomas.</td></tr>
+<tr><td class="strong">Vídeo final com legenda queimada</td><td><span class="tag alto">Impacto alto</span></td><td>o vídeo sai pronto para publicar, com a legenda fora das áreas de botões das redes, e a mesma resolução, duração e áudio do original.</td></tr>
+<tr><td class="strong">Controle de espaço em disco</td><td><span class="tag medio">Impacto médio</span></td><td>o servidor não enche com cortes antigos e a limpeza é feita com segurança, sem apagar o que está em processamento.</td></tr>
+<tr><td class="strong">Instalação documentada e serviço permanente</td><td><span class="tag medio">Impacto médio</span></td><td>o serviço fica sempre disponível sem intervenção, e outra pessoa consegue instalar do zero.</td></tr>
+</tbody>
+</table></div>
+    <div class="note"><b>O recorte deste documento</b>
+<p>Este documento cobre o MVP: o fluxo completo do corte ao vídeo legendado, num único servidor Mac. Ficaram de fora títulos e hashtags localizados, dublagem, publicação automática nas redes, outros sistemas operacionais e idiomas de alfabeto não latino.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="p-entregas" role="tabpanel" data-panel="entregas">
+    <div class="sec-h"><h2>As 6 entregas</h2><p>Abra cada entrega para ver o que mudou, o valor e como perceber.</p></div>
+    <div class="ctl"><button type="button" data-cards="open">Abrir todas</button><button type="button" data-cards="close">Fechar todas</button></div>
+    <div class="cards">
+<details class="card impact-alto">
+<summary><b>Painel web privado</b><span class="tag alto">Impacto alto</span></summary>
+<div class="card-body">
+
+<p><b>O que mudou</b>um painel com login, na rede local, reúne o acervo de cortes, o envio de vídeos, a transcrição com progresso ao vivo, a revisão da legenda, a queima e os downloads.</p>
+<p><b>Valor</b>o fluxo inteiro passa a ser feito no navegador, sem terminal e sem editar arquivos à mão.</p>
+<p><b>Como perceber</b>abrir o endereço do painel, entrar com a senha e acompanhar um corte do envio ao download.</p>
+
+</div>
+</details>
+<details class="card impact-alto">
+<summary><b>Transcrição local com revisão e prévia</b><span class="tag alto">Impacto alto</span></summary>
+<div class="card-body">
+
+<p><b>O que mudou</b>a fala em português vira legenda automaticamente, no próprio servidor, já dividida no tamanho certo para vídeo vertical. A legenda aparece sobre o vídeo e pode ser corrigida antes de traduzir.</p>
+<p><b>Valor</b>erros de transcrição são corrigidos uma vez, na origem, antes de chegarem aos três idiomas; nenhum áudio sai da casa.</p>
+<p><b>Como perceber</b>depois de transcrever, tocar o vídeo na Revisão e ver a legenda, editar uma frase e ver a prévia mudar na hora.</p>
+
+</div>
+</details>
+<details class="card impact-alto">
+<summary><b>Tradução com localização pelo Claude Code</b><span class="tag alto">Impacto alto</span></summary>
+<div class="card-body">
+
+<p><b>O que mudou</b>basta colar no Claude Code o caminho mostrado pelo painel. Ele pergunta os idiomas, lê o contexto do vídeo e o glossário, adapta piadas e expressões e só termina quando todas as legendas passam na checagem de tamanho e sincronia.</p>
+<p><b>Valor</b>a legenda em cada idioma soa natural para quem assiste, mantendo o tempo exato da fala; no corte real, as referências políticas e o humor foram adaptados nos três idiomas.</p>
+<p><b>Como perceber</b>o painel marca cada idioma como traduzido e mostra a prévia dele sobre o vídeo.</p>
+
+</div>
+</details>
+<details class="card impact-alto">
+<summary><b>Vídeo final com legenda queimada</b><span class="tag alto">Impacto alto</span></summary>
+<div class="card-body">
+
+<p><b>O que mudou</b>o painel grava a legenda de cada idioma dentro do vídeo, com o mesmo visual da prévia, e entrega cada vídeo ou um pacote com todos.</p>
+<p><b>Valor</b>o vídeo sai pronto para publicar, com a legenda fora das áreas de botões das redes, e a mesma resolução, duração e áudio do original.</p>
+<p><b>Como perceber</b>marcar os idiomas, queimar, assistir no próprio painel e baixar o pacote.</p>
+
+</div>
+</details>
+<details class="card impact-medio">
+<summary><b>Controle de espaço em disco</b><span class="tag medio">Impacto médio</span></summary>
+<div class="card-body">
+
+<p><b>O que mudou</b>uma seção mostra o espaço livre e quanto o Translunar ocupa, e apaga vídeos originais, legendas e vídeos finais, por seleção ou por idade.</p>
+<p><b>Valor</b>o servidor não enche com cortes antigos e a limpeza é feita com segurança, sem apagar o que está em processamento.</p>
+<p><b>Como perceber</b>na seção de armazenamento, selecionar itens antigos, excluir e ver o espaço liberado.</p>
+
+</div>
+</details>
+<details class="card impact-medio">
+<summary><b>Instalação documentada e serviço permanente</b><span class="tag medio">Impacto médio</span></summary>
+<div class="card-body">
+
+<p><b>O que mudou</b>o painel roda como serviço do servidor, volta sozinho depois de reiniciar e é acessado com HTTPS pelo nome na rede local ou pelo IP. O guia de instalação ficou genérico, para qualquer Mac.</p>
+<p><b>Valor</b>o serviço fica sempre disponível sem intervenção, e outra pessoa consegue instalar do zero.</p>
+<p><b>Como perceber</b>reiniciar o servidor e abrir o painel de novo; seguir o guia num Mac novo.</p>
+</div>
+</details>
+    </div>
+  </section>
+
+  <section class="panel" id="p-antes-e-depois" role="tabpanel" data-panel="antes-e-depois">
+    <div class="sec-h"><h2>Antes e depois</h2><p>Como era e como ficou para quem usa.</p></div>
+    <div class="md">
+<div class="tw"><table>
+<thead>
+<tr><th>Situação</th><th>Antes</th><th>Depois</th></tr>
+</thead>
+<tbody>
+<tr><td>Legendar um corte em 3 idiomas</td><td>Manual, idioma por idioma</td><td>Um fluxo único: enviar, transcrever, revisar, traduzir e queimar</td></tr>
+<tr><td>Qualidade da tradução</td><td>Risco de tradução literal</td><td>Adaptação de expressões e humor por idioma, com glossário e contexto</td></tr>
+<tr><td>Sincronia e tamanho da legenda</td><td>Ajuste no olho</td><td>Checagem automática de linhas, caracteres e velocidade de leitura</td></tr>
+<tr><td>Conferência antes de publicar</td><td>Só depois de renderizar</td><td>Prévia instantânea sobre o vídeo, igual ao resultado final</td></tr>
+<tr><td>Privacidade</td><td>Dependência de serviços externos</td><td>Transcrição local, sem enviar o áudio para fora</td></tr>
+</tbody>
+</table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-execucao" role="tabpanel" data-panel="execucao">
+    <div class="sec-h"><h2>Como foi executado</h2><p>Tarefas, testes e evidências, da aprovação em 2026-10-29 à conclusão em 2026-10-29.</p></div>
+<div class="kpis">
+<div class="kpi"><b>18<small> / 18</small></b><span>Tarefas concluídas</span></div>
+<div class="kpi"><b>18<small> / 18</small></b><span>Tarefas com testes aprovados</span></div>
+<div class="kpi"><b>38<small> / 38</small></b><span>Evidências geradas</span></div>
+</div>
+    <div class="block">
+      <h3>Linha do tempo</h3>
+      <ol class="timeline">
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-01</span>Esqueleto do projeto Python</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-02</span>Configuração, perfis e glossário</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-03</span>SRT, WebVTT e validação de legendas</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-04</span>Estado, hashes e lock por corte</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-05</span>Probe e miniatura</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-06</span>Transcrição e segmentação</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-07</span>Queima com ffmpeg e fonte embarcada</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-08</span>Painel base, login e identidade visual</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-09</span>Implantação no server e 1ª revisão visual</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-10</span>Filas, worker e progresso por SSE</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-11</span>Acervo e upload no painel (revisão visual)</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-12</span>Transcrição e revisão no painel (revisão visual)</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-13</span>CLI completa</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-14</span>Queima, prévia por idioma e download no painel (revisão visual)</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-15</span>Espaço em disco e exclusão no painel (revisão visual)</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-16</span>Skill translate-subtitles</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-17</span>README do fluxo novo</span></li>
+      <li><span class="date">2026-10-29</span><span class="task"><span class="id">TASK-18</span>Validação de ponta a ponta e revisão visual final</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="panel" id="p-proximos-passos" role="tabpanel" data-panel="proximos-passos">
+    <div class="sec-h"><h2>Próximos passos</h2><p>O que vem a seguir e o que depende de decisão.</p></div>
+    <div class="md">
+<ul>
+<li>Suportar outros sistemas e placas de vídeo, para rodar fora do Mac (já planejado numa nova especificação).</li>
+<li>Corrigir dois detalhes visuais da revisão final: o nome de uma aba cortado em telas estreitas e as caixas de seleção claras no tema escuro.</li>
+<li>Pedir a um falante nativo uma revisão do espanhol e do francês; o inglês foi aprovado pelo dono do produto.</li>
+<li>Decidir se títulos, descrições e hashtags localizados entram numa próxima versão.</li>
+</ul>
+    </div>
+    <div class="note warn"><b>Riscos e limitações</b>
+<ul>
+<li>Por enquanto, roda só num Mac com Apple Silicon.</li>
+<li>A transcrição pode errar nomes próprios; a correção depende da revisão ou do contexto do vídeo.</li>
+<li>A naturalidade do espanhol e do francês ainda não foi avaliada por um falante nativo.</li>
+<li>O painel é só para a rede local ou uma VPN privada; não há acesso pela internet nem vários usuários.</li>
+<li>Um trabalho interrompido por reinício precisa ser refeito manualmente.</li>
+</ul>
+    </div>
+  </section>
+</main>
+
+<footer>Vostok · resumo executivo de SPEC-001, gerado a partir da spec, das tarefas e do conteúdo da finalização.</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var button = document.getElementById("theme-toggle");
+  button.addEventListener("click", function () {
+    var light = root.getAttribute("data-theme") !== "light";
+    root.setAttribute("data-theme", light ? "light" : "dark");
+    button.textContent = light ? "Tema escuro" : "Tema claro";
+    button.setAttribute("aria-pressed", light ? "true" : "false");
+  });
+
+  // Abas: sem JavaScript, todas as seções aparecem em sequência e os links levam a cada uma.
+  // Links do menu sem painel correspondente saem do menu.
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".nav a[data-tab]")).filter(function (a) {
+    if (document.getElementById("p-" + a.getAttribute("data-tab"))) return true;
+    a.parentNode.removeChild(a);
+    return false;
+  });
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".panel"));
+  // O hash da aba (#execucao) não coincide com o id da seção (p-execucao): o link continua compartilhável
+  // e o navegador não rola até a seção antes de ela aparecer, o que esconderia o cabeçalho.
+  function show(id) {
+    if (!tabs.length) return;
+    id = id.replace(/^p-/, "");
+    if (!document.getElementById("p-" + id)) id = tabs[0].getAttribute("data-tab");
+    tabs.forEach(function (a) {
+      var on = a.getAttribute("data-tab") === id;
+      a.classList.toggle("on", on);
+      a.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    panels.forEach(function (p) { p.classList.toggle("on", p.id === "p-" + id); });
+  }
+  tabs.forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      show(a.getAttribute("data-tab"));
+      history.replaceState(null, "", "#" + a.getAttribute("data-tab"));
+    });
+  });
+  document.body.classList.add("tabs");
+  show((location.hash || "").replace("#", ""));
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll("details.card"));
+  Array.prototype.forEach.call(document.querySelectorAll("[data-cards]"), function (b) {
+    b.addEventListener("click", function () {
+      var open = b.getAttribute("data-cards") === "open";
+      cards.forEach(function (d) { d.open = open; });
+    });
+  });
+
+  // Na impressão, as entregas fechadas abrem para o conteúdo sair inteiro no papel.
+  var closed = [];
+  window.addEventListener("beforeprint", function () {
+    closed = cards.filter(function (d) { return !d.open; });
+    closed.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    closed.forEach(function (d) { d.open = false; });
+  });
+})();
+</script>
+</body>
+</html>

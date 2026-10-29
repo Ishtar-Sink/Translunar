@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPEC-001 · Documento técnico · MVP — Pipeline de legendas multilíngues</title>
+<style>
+:root {
+  color-scheme: dark;
+  --color-bg: #1a1528;
+  --color-surface: #231d35;
+  --color-surface-2: #2b2440;
+  --color-ink: #ece8f5;
+  --color-muted: #a39cb8;
+  --color-line: #3a3252;
+  --color-primary: #a78bfa;
+  --color-primary-ink: #150f22;
+  --color-primary-soft: #352a55;
+  --color-ok: #5ccf9f;
+  --color-ok-soft: #173027;
+  --color-warn: #f0a45a;
+  --color-warn-soft: #33251a;
+  --color-crit: #ef7b86;
+  --color-crit-soft: #3a1c22;
+  --color-diff-add: #5ccf9f;
+  --color-diff-add-soft: #173027;
+  --color-diff-del: #ef7b86;
+  --color-diff-del-soft: #3a1c22;
+  --color-head: #17112a;
+  --color-head-2: #34255c;
+  --color-head-ink: #f5f1ff;
+  --color-head-muted: #b9afd6;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #f7f5fb;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1edf8;
+  --color-ink: #1d1729;
+  --color-muted: #6a6280;
+  --color-line: #e3ddee;
+  --color-primary: #6d28d9;
+  --color-primary-ink: #ffffff;
+  --color-primary-soft: #ede5fb;
+  --color-ok: #047857;
+  --color-ok-soft: #e3f4ec;
+  --color-warn: #b45309;
+  --color-warn-soft: #fdf1e3;
+  --color-crit: #b91c3c;
+  --color-crit-soft: #fbe5ea;
+  --color-diff-add: #047857;
+  --color-diff-add-soft: #e3f4ec;
+  --color-diff-del: #b91c3c;
+  --color-diff-del-soft: #fbe5ea;
+  --color-head: #1c1430;
+  --color-head-2: #38235f;
+  --color-head-ink: #ffffff;
+  --color-head-muted: #cdc2ee;
+}
+* { box-sizing: border-box; }
+html { background: var(--color-bg); }
+body {
+  margin: 0; background: var(--color-bg); color: var(--color-ink);
+  font: 400 14px/1.55 var(--font-body); -webkit-font-smoothing: antialiased;
+}
+code { font: .92em var(--font-mono); background: var(--color-surface-2); padding: 1px 5px; border-radius: 4px; }
+p { margin: 0 0 12px; }
+h2 { font-size: 20px; margin: 0 0 5px; letter-spacing: -.015em; text-wrap: pretty; }
+h3 { font-size: 15px; margin: 0 0 8px; letter-spacing: -.008em; }
+
+/* Cabeçalho em faixa */
+.hd { background: linear-gradient(160deg, var(--color-head) 0%, var(--color-head-2) 100%); color: var(--color-head-ink);
+      padding: 20px clamp(16px, 4vw, 40px) 0; }
+.hd-top, .hd-body { max-width: 1120px; margin: 0 auto; }
+.hd-top { display: flex; align-items: center; gap: 12px; }
+.mark { width: 26px; height: 26px; flex: none; }
+.wm { font-weight: 700; font-size: 15px; letter-spacing: -.01em; line-height: 1.15; }
+.wm small { display: block; font-weight: 500; font-size: 11px; color: var(--color-head-muted); letter-spacing: .02em; }
+.hd-sp { flex: 1; }
+.tbtn { background: rgba(255,255,255,.09); color: var(--color-head-ink); border: 1px solid rgba(255,255,255,.18);
+        border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 12px; cursor: pointer; }
+.tbtn:hover { background: rgba(255,255,255,.17); }
+.tbtn:focus-visible { outline: 2px solid var(--color-head-muted); outline-offset: 2px; }
+.hd-body { padding: 26px 0 28px; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--color-head-muted); margin: 0 0 9px; }
+.hd-body h1 { font-size: clamp(26px, 3.5vw, 35px); line-height: 1.12; margin: 0 0 12px; letter-spacing: -.024em; text-wrap: pretty; }
+.lede { font-size: 14.5px; color: var(--color-head-muted); max-width: 900px; }
+.lede p:last-child { margin-bottom: 0; }
+.lede strong { color: var(--color-head-ink); font-weight: 600; }
+.lede code { background: rgba(255,255,255,.1); color: var(--color-head-ink); }
+
+main { max-width: 1120px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 56px; }
+.panel { padding: 30px 0 4px; }
+.tabs .panel:not(.on) { display: none; }
+.sec-h { margin: 0 0 14px; }
+.sec-h > p { color: var(--color-muted); font-size: 13.5px; margin: 6px 0 0; }
+/* Tabelas */
+.tw { overflow-x: auto; border: 1px solid var(--color-line); border-radius: 14px; background: var(--color-surface); margin: 0 0 14px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); font-weight: 700;
+     padding: 11px 14px; border-bottom: 1px solid var(--color-line); background: var(--color-surface-2); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--color-line); font-size: 13.5px; vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.strong { font-weight: 600; }
+
+.na { color: var(--color-muted); font-style: italic; }
+
+/* Abas */
+.nav { position: sticky; top: 0; z-index: 20; background: var(--color-surface); border-bottom: 1px solid var(--color-line); }
+.nav-in { max-width: 1120px; margin: 0 auto; display: flex; gap: 2px; padding: 0 clamp(16px, 4vw, 40px); overflow-x: auto; }
+.nav a { display: block; padding: 12px 12px 10px; font-size: 12.5px; color: var(--color-muted); text-decoration: none;
+         border-bottom: 2px solid transparent; white-space: nowrap; }
+.nav a:hover { color: var(--color-ink); }
+.nav a.on { color: var(--color-primary); border-bottom-color: var(--color-primary); font-weight: 600; }
+.nav a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -3px; border-radius: 3px; }
+
+/* Diffs */
+details.dfile { background: var(--color-surface); border: 1px solid var(--color-line); border-radius: 9px; margin: 0 0 8px; overflow: hidden; }
+details.dfile[open] { border-color: var(--color-primary); }
+details.dfile > summary { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; padding: 11px 15px; cursor: pointer; list-style: none; }
+details.dfile > summary::-webkit-details-marker { display: none; }
+details.dfile > summary::before { content: "+"; font-family: var(--font-mono); color: var(--color-primary); font-weight: 700; flex: none; width: 11px; }
+details.dfile[open] > summary::before { content: "\2212"; }
+details.dfile > summary:hover { background: var(--color-surface-2); }
+details.dfile > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+details.dfile > summary .path { font: 600 12.5px var(--font-mono); flex: 1; min-width: 200px; overflow-wrap: anywhere; }
+.dbody { border-top: 1px solid var(--color-line); }
+.dbody > p { margin: 0; padding: 12px 15px; color: var(--color-muted); font-size: 13px; }
+.dbody .tw { border: 0; border-radius: 0; margin: 0; }
+table.diff { table-layout: fixed; min-width: 760px; font: 12px/1.5 var(--font-mono); }
+table.diff td { padding: 0 8px; border-bottom: 0; font-size: 12px; vertical-align: top; }
+table.diff col.cln { width: 48px; }
+table.diff td.ln { width: 48px; text-align: right; color: var(--color-muted); user-select: none; background: var(--color-surface-2); }
+table.diff td.code { white-space: pre-wrap; overflow-wrap: anywhere; }
+table.diff td.code.del { background: var(--color-diff-del-soft); }
+table.diff td.code.add { background: var(--color-diff-add-soft); }
+table.diff td.code.empty { background: var(--color-surface-2); }
+table.diff tr:has(td.code.del) td.ln:nth-child(1) { color: var(--color-diff-del); }
+table.diff tr:has(td.code.add) td.ln:nth-child(3) { color: var(--color-diff-add); }
+table.diff tr.hunk td { background: var(--color-primary-soft); color: var(--color-muted); padding: 4px 10px; }
+table.diff td.code:nth-child(2) { border-right: 1px solid var(--color-line); }
+
+/* Etiquetas e notas */
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px;
+       white-space: nowrap; background: var(--color-surface-2); color: var(--color-muted); }
+.chip { display: inline-block; font: 700 11.5px var(--font-mono); color: var(--color-primary); background: var(--color-primary-soft);
+        padding: 1px 7px; border-radius: 999px; margin: 0 4px 3px 0; white-space: nowrap; }
+.tag.criar { background: var(--color-ok-soft); color: var(--color-ok); }
+.tag.alterar { background: var(--color-primary-soft); color: var(--color-primary); }
+.tag.remover { background: var(--color-crit-soft); color: var(--color-crit); }
+td.path { font: 12.5px var(--font-mono); overflow-wrap: anywhere; }
+td.mono { font: 12.5px var(--font-mono); white-space: nowrap; }
+.md { font-size: 14px; }
+.md ul, .md ol { margin: 0 0 12px; padding-left: 22px; }
+.md li { margin: 4px 0; }
+.md li::marker { color: var(--color-primary); }
+.note { background: var(--color-primary-soft); border-radius: 9px; padding: 15px 18px; font-size: 13.5px; margin: 20px 0 0; }
+.note > b:first-child { display: block; text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em; margin-bottom: 4px; color: var(--color-primary); }
+.note p:last-child, .note ul:last-child, .note ol:last-child { margin-bottom: 0; }
+.note ul, .note ol { margin: 0 0 10px; padding-left: 20px; }
+.note.warn { background: var(--color-warn-soft); }
+.note.warn > b:first-child { color: var(--color-warn); }
+
+/* Conteúdo em Markdown */
+.md { font-size: 14px; }
+.md ul, .md ol { margin: 0 0 12px; padding-left: 22px; }
+.md li { margin: 4px 0; }
+.md li::marker { color: var(--color-primary); }
+
+footer { max-width: 1120px; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 44px; border-top: 1px solid var(--color-line);
+         color: var(--color-muted); font-size: 12px; }
+
+@page { margin: 14mm 0; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .tbtn, .nav { display: none; }
+  details.dfile { break-inside: auto; }
+  main { padding-bottom: 0; }
+  .hd { padding-top: 0; }
+  .tabs .panel:not(.on), .panel { display: block; }
+  .panel + .panel { break-before: page; }
+  .sec-h, tr, th { break-inside: avoid; }
+  .sec-h { break-after: avoid; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="hd-top">
+    <svg class="mark" viewBox="0 0 26 26" aria-hidden="true">
+      <circle cx="13" cy="13" r="6" fill="currentColor"/>
+      <ellipse cx="13" cy="13" rx="12" ry="4.5" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".55" transform="rotate(-24 13 13)"/>
+    </svg>
+    <div class="wm">Vostok<small>Harness · finalização de spec</small></div>
+    <div class="hd-sp"></div>
+    <button type="button" class="tbtn" id="theme-toggle" aria-pressed="false">Tema claro</button>
+  </div>
+  <div class="hd-body">
+    <p class="eyebrow">Documento técnico · SPEC-001 · aprovada em 2026-10-29 · concluída em 2026-10-29</p>
+    <h1>MVP — Pipeline de legendas multilíngues</h1>
+    <div class="lede">
+      <p>Para quem vai manter o que foi entregue: <strong>o que foi feito</strong> e como, os <strong>requisitos</strong> cobertos, os <strong>arquivos</strong> e <strong>commits</strong>, as decisões e onde se aprofundar.</p>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Seções">
+  <div class="nav-in" role="tablist">
+    <a href="#p-visao-geral" role="tab" data-tab="visao-geral">Visão geral</a>
+    <a href="#p-arquitetura" role="tab" data-tab="arquitetura">Arquitetura</a>
+    <a href="#p-o-que-foi-feito" role="tab" data-tab="o-que-foi-feito">O que foi feito</a>
+    <a href="#p-requisitos" role="tab" data-tab="requisitos">Requisitos</a>
+    <a href="#p-arquivos" role="tab" data-tab="arquivos">Arquivos</a>
+    <a href="#p-diffs" role="tab" data-tab="diffs">Diffs</a>
+    <a href="#p-commits" role="tab" data-tab="commits">Commits</a>
+    <a href="#p-decisoes" role="tab" data-tab="decisoes">Decisões</a>
+    <a href="#p-aprendizados" role="tab" data-tab="aprendizados">Aprendizados</a>
+    <a href="#p-atencao" role="tab" data-tab="atencao">Atenção</a>
+    <a href="#p-referencias" role="tab" data-tab="referencias">Referências</a>
+  </div>
+</nav>
+
+<main>
+  <section class="panel" id="p-visao-geral" role="tabpanel" data-panel="visao-geral">
+    <div class="sec-h"><h2>Visão geral</h2></div>
+    <div class="md">
+<p>O Translunar é um pacote Python (<code>src/translunar</code>) com um núcleo usado como biblioteca, uma CLI <code>legendar</code> e um painel FastAPI com frontend estático sem build. O painel conduz a pipeline (upload, transcrição com <code>mlx-whisper</code>, prévia em WebVTT, edição do <code>pt.srt</code>, queima com <code>ffmpeg-full</code>/libass e downloads), e o Claude Code só traduz, pela skill <code>translate-subtitles</code>, gravando <code>&lt;idioma&gt;.srt</code> no <code>server</code> por SSH e validando com <code>legendar validar</code> (DEC-002). Nenhum componente chama IA ou serviço externo. O estado de cada corte vive em <code>saida/&lt;corte&gt;/estado.json</code>, com hashes das entradas para detectar desatualização e um lock por corte entre CLI e painel.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="p-arquitetura" role="tabpanel" data-panel="arquitetura">
+    <div class="sec-h"><h2>Arquitetura e componentes</h2></div>
+    <div class="md">
+<div class="tw"><table>
+<thead>
+<tr><th>Componente</th><th>Papel</th></tr>
+</thead>
+<tbody>
+<tr><td><code>core/models.py</code>, <code>core/errors.py</code>, <code>core/config.py</code></td><td>Modelos, erros com código de saída e carga de <code>config.yaml</code>, perfis de idioma e glossário.</td></tr>
+<tr><td><code>core/srt.py</code>, <code>core/webvtt.py</code>, <code>core/validation.py</code></td><td>Leitura e escrita de SRT, conversão para WebVTT da prévia e validação estrutural e de limites (linhas, caracteres, cps).</td></tr>
+<tr><td><code>core/state.py</code>, <code>core/lock.py</code></td><td><code>estado.json</code> com escrita atômica, hashes e desatualização; lock por corte com <code>flock</code>.</td></tr>
+<tr><td><code>core/probe.py</code>, <code>core/transcription.py</code>, <code>core/segmentation.py</code></td><td><code>ffprobe</code>, miniatura, transcrição (<code>mlx-whisper</code> ou simulada) e segmentação dentro dos limites.</td></tr>
+<tr><td><code>core/burn.py</code>, <code>assets/fonts/</code></td><td>Geração do ASS a partir do estilo de <code>config.yaml</code> e queima com ffmpeg, com a fonte Inter Bold embarcada.</td></tr>
+<tr><td><code>core/pipeline.py</code>, <code>cli.py</code></td><td>Orquestração idempotente (transcrever, validar, queimar, status) e a CLI com <code>--json</code> e códigos 0 a 5.</td></tr>
+<tr><td><code>panel/app.py</code>, <code>panel/auth.py</code></td><td>App FastAPI, sessão por senha com bloqueio após tentativas erradas e CSRF.</td></tr>
+<tr><td><code>panel/jobs.py</code>, <code>panel/events.py</code></td><td>Duas filas (1 transcrição, até <code>queima.jobs</code> queimas) e progresso por SSE.</td></tr>
+<tr><td><code>panel/routes_clips.py</code>, <code>routes_review.py</code>, <code>routes_files.py</code>, <code>routes_storage.py</code></td><td>Acervo e upload por streaming; revisão e contexto; queima, <code>Range</code> e <code>.zip</code>; espaço em disco e exclusão.</td></tr>
+<tr><td><code>panel/static/</code></td><td>Shell com sidebar, <code>tokens.css</code> da identidade Ishtar Sink e um módulo JS e CSS por seção.</td></tr>
+<tr><td><code>deploy/</code></td><td>LaunchAgent <code>local.translunar-painel</code> e bloco do Caddy (<code>tls internal</code>) para <code>translunar.local</code> e <code>IP:8771</code>.</td></tr>
+<tr><td><code>vostok/skills/custom/translate-subtitles/</code></td><td>A skill de tradução e localização, com o redirecionamento em <code>.claude/skills/</code>.</td></tr>
+</tbody>
+</table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-o-que-foi-feito" role="tabpanel" data-panel="o-que-foi-feito">
+    <div class="sec-h"><h2>O que foi feito</h2></div>
+    <div class="md">
+<ul>
+<li><strong>Base (TASK-01 a 04):</strong> projeto com <code>uv</code>, <code>ruff</code> e <code>mypy</code>; configuração com perfis <code>en</code>, <code>es</code> e <code>fr</code> e glossário; SRT, WebVTT e validação com tipos de problema (<code>missing_id</code>, <code>timestamp</code>, <code>lines</code>, <code>chars</code>, <code>cps</code> e outros); estado atômico e lock entre processos.</li>
+<li><strong>Mídia (TASK-05 a 07):</strong> probe e miniatura; transcrição com segmentação em até 2 linhas de 32 caracteres e 1 a 6 s; queima que preserva resolução, duração e áudio, com o estilo calculado só de <code>config.yaml</code>.</li>
+<li><strong>Painel (TASK-08, 10 a 12, 14, 15):</strong> login, filas com SSE, acervo com seletor 9:16/16:9 por cartão, revisão com prévia sobreposta e edição do <code>pt.srt</code>, queima por idioma em fila por corte, downloads com <code>Range</code> e <code>.zip</code>, e armazenamento com filtro de visualização e exclusão do que foi marcado.</li>
+<li><strong>CLI (TASK-13):</strong> <code>painel</code>, <code>transcrever</code>, <code>validar</code>, <code>queimar</code> e <code>status</code>, sem interação e com <code>--json</code>; <code>validar</code> registra a tradução aprovada no <code>estado.json</code>.</li>
+<li><strong>Implantação (TASK-09):</strong> <code>ffmpeg-full</code> no <code>server</code>, código publicado por <code>rsync</code>, LaunchAgent, Caddy por <code>import</code> e nome <code>.local</code> publicado com <code>dns-sd</code> por um segundo LaunchAgent.</li>
+<li><strong>Skill e documentação (TASK-16, 17):</strong> skill <code>translate-subtitles</code> com gravação atômica e até 3 rodadas de validação; README genérico com seções de plataformas, convenções e roadmap.</li>
+<li><strong>Validação (TASK-18):</strong> fluxo completo num corte real de 93,8 s, com as três queimas prontas e o checklist do celular aprovado.</li>
+</ul>
+    </div>
+  </section>
+
+  <section class="panel" id="p-requisitos" role="tabpanel" data-panel="requisitos">
+    <div class="sec-h"><h2>Requisitos e tarefas</h2><p>Cada requisito com as tarefas que o cobrem.</p></div>
+<div class="tw"><table>
+<thead><tr><th>Requisito</th><th>Descrição</th><th>Tarefas</th></tr></thead>
+<tbody>
+<tr><td class="mono">RF-34</td><td>Um idioma de alfabeto latino novo deve exigir só um arquivo <code>config/idiomas/&lt;codigo&gt;.yaml</code>, sem mudança de código.</td><td><span class="chip">TASK-02</span></td></tr>
+<tr><td class="mono">RF-18</td><td><code>legendar validar</code> deve recusar SRT inválido, id faltando, id duplicado ou timestamp diferente do <code>pt.srt</code> do mesmo corte.</td><td><span class="chip">TASK-03</span></td></tr>
+<tr><td class="mono">RF-19</td><td><code>legendar validar</code> deve recusar legendas acima de <code>legenda.max_linhas</code>, de <code>legenda.max_caracteres_linha</code> ou de <code>legenda.max_cps</code>.</td><td><span class="chip">TASK-03</span></td></tr>
+<tr><td class="mono">CT-13</td><td>Validação estrutural</td><td><span class="chip">TASK-03</span></td></tr>
+<tr><td class="mono">CT-14</td><td>Validação de limites</td><td><span class="chip">TASK-03</span></td></tr>
+<tr><td class="mono">RF-23</td><td>O sistema deve marcar como desatualizados os itens que dependem de uma entrada alterada: traduções e vídeos quando o <code>pt.srt</code> muda, e o vídeo de um idioma quando o <code>&lt;idioma&gt;.srt</code> muda.</td><td><span class="chip">TASK-04</span></td></tr>
+<tr><td class="mono">RF-24</td><td>O sistema não deve refazer uma etapa pronta e atual sem pedido explícito (<code>--forcar</code> na CLI ou &quot;Refazer&quot; no painel).</td><td><span class="chip">TASK-04</span></td></tr>
+<tr><td class="mono">RF-32</td><td>O sistema deve adquirir um lock por corte antes de transcrever ou queimar, recusando o processamento concorrente pela CLI e pelo painel.</td><td><span class="chip">TASK-04</span></td></tr>
+<tr><td class="mono">CT-17</td><td>Desatualização</td><td><span class="chip">TASK-04</span></td></tr>
+<tr><td class="mono">CT-26</td><td>Lock por corte</td><td><span class="chip">TASK-04</span></td></tr>
+<tr><td class="mono">RF-07</td><td>Antes de transcrever, o sistema deve validar o vídeo com o <code>ffprobe</code>: arquivo legível, resolução, duração e presença de faixa de áudio.</td><td><span class="chip">TASK-05</span></td></tr>
+<tr><td class="mono">RF-06</td><td>O sistema deve transcrever o áudio em pt-BR com o <code>mlx-whisper</code> e gravar <code>saida/&lt;corte&gt;/pt.srt</code>, disparado pelo painel ou por <code>legendar transcrever</code>.</td><td><span class="chip">TASK-06</span></td></tr>
+<tr><td class="mono">RF-08</td><td>A segmentação deve gerar legendas dentro de <code>legenda.max_linhas</code>, <code>legenda.max_caracteres_linha</code> e da duração entre <code>legenda.duracao_min_s</code> e <code>legenda.duracao_max_s</code>.</td><td><span class="chip">TASK-06</span></td></tr>
+<tr><td class="mono">CT-05</td><td>Transcrição simulada</td><td><span class="chip">TASK-06</span></td></tr>
+<tr><td class="mono">CT-06</td><td>Segmentação</td><td><span class="chip">TASK-06</span></td></tr>
+<tr><td class="mono">RF-22</td><td>A queima deve manter a resolução, a proporção, a duração e o áudio do vídeo original.</td><td><span class="chip">TASK-07</span></td></tr>
+<tr><td class="mono">CT-16</td><td>Queima</td><td><span class="chip">TASK-07</span></td></tr>
+<tr><td class="mono">RF-30</td><td>O painel deve exigir login por senha única, com sessão por cookie, proteção contra CSRF e limite de tentativas.</td><td><span class="chip">TASK-08</span></td></tr>
+<tr><td class="mono">CT-24</td><td>Autenticação</td><td><span class="chip">TASK-08</span></td></tr>
+<tr><td class="mono">RF-09</td><td>O painel deve mostrar o progresso da transcrição e da queima de cada corte e idioma, atualizado por SSE, sem recarregar a página.</td><td><span class="chip">TASK-10</span></td></tr>
+<tr><td class="mono">RF-31</td><td>O sistema deve persistir estado e progresso em <code>saida/&lt;corte&gt;/estado.json</code> e, ao reiniciar, marcar como <code>interrompido</code> os jobs que estavam em execução.</td><td><span class="chip">TASK-10</span></td></tr>
+<tr><td class="mono">RF-33</td><td>A falha num corte ou idioma deve ser registrada no <code>estado.json</code> e mostrada no painel sem interromper os demais jobs da fila.</td><td><span class="chip">TASK-10</span></td></tr>
+<tr><td class="mono">CT-07</td><td>Progresso por SSE</td><td><span class="chip">TASK-10</span></td></tr>
+<tr><td class="mono">CT-25</td><td>Reinício</td><td><span class="chip">TASK-10</span></td></tr>
+<tr><td class="mono">CT-27</td><td>Falha isolada</td><td><span class="chip">TASK-10</span></td></tr>
+<tr><td class="mono">RF-01</td><td>O painel deve listar os vídeos de <code>entrada/</code> (mp4, mov, mkv, webm, m4v) com miniatura, duração, tamanho e estado por etapa e idioma.</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">RF-02</td><td>O painel deve aceitar o upload de um ou vários vídeos para <code>entrada/</code>, por arrastar e soltar, com barra de progresso.</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">RF-03</td><td>O upload deve rejeitar arquivos com extensão fora da lista aceita ou maiores que <code>painel.limite_upload_mb</code>.</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">RF-04</td><td>O upload deve verificar o espaço livre em disco antes de aceitar o arquivo.</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">RF-05</td><td>O upload deve acrescentar um sufixo numérico ao nome de um arquivo que já existe em <code>entrada/</code>.</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">CT-01</td><td>Listagem do acervo</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">CT-02</td><td>Upload válido e duplicado</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">CT-03</td><td>Upload inválido</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">CT-04</td><td>Upload sem espaço</td><td><span class="chip">TASK-11</span></td></tr>
+<tr><td class="mono">RF-10</td><td>O painel deve tocar o vídeo com a legenda sobreposta em WebVTT, gerada do <code>pt.srt</code> e de cada <code>&lt;idioma&gt;.srt</code>, com a fonte e o estilo de <code>config.yaml</code>.</td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">RF-11</td><td>O painel deve permitir editar e salvar o <code>pt.srt</code>, recusando o salvamento de um SRT com formato inválido.</td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">RF-12</td><td>O painel deve permitir criar e editar o contexto do vídeo em <code>entrada/&lt;video&gt;.contexto.md</code>.</td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">RF-13</td><td>O painel deve mostrar o caminho absoluto do <code>pt.srt</code> no <code>server</code>, com um botão para copiar.</td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">CT-08</td><td>WebVTT da prévia</td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">CT-09</td><td>Salvar o <code>pt.srt</code></td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">CT-10</td><td>Contexto do vídeo</td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">CT-11</td><td>Caminho do <code>pt.srt</code></td><td><span class="chip">TASK-12</span></td></tr>
+<tr><td class="mono">RF-20</td><td><code>legendar validar</code> deve registrar no <code>estado.json</code> a tradução aprovada, com o hash do arquivo e do <code>pt.srt</code> de origem.</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">RF-35</td><td>Todo comando da CLI deve ser não interativo, aceitar <code>--json</code> e terminar com os códigos de saída definidos em Contratos.</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">RF-36</td><td><code>legendar status</code> deve listar os cortes com o estado de cada etapa e idioma e o caminho do <code>pt.srt</code>.</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">CT-15</td><td>Registro da tradução</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">CT-18</td><td>Idempotência</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">CT-28</td><td>Idioma novo</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">CT-29</td><td>Contrato da CLI</td><td><span class="chip">TASK-13</span></td></tr>
+<tr><td class="mono">RF-21</td><td>O painel deve disparar a queima de um ou vários idiomas traduzidos, gerando <code>saida/&lt;corte&gt;/&lt;idioma&gt;.mp4</code>.</td><td><span class="chip">TASK-14</span></td></tr>
+<tr><td class="mono">RF-25</td><td>O painel deve permitir baixar cada <code>&lt;idioma&gt;.mp4</code> e <code>&lt;idioma&gt;.srt</code> por streaming com suporte a <code>Range</code>.</td><td><span class="chip">TASK-14</span></td></tr>
+<tr><td class="mono">RF-26</td><td>O painel deve gerar sob demanda um <code>.zip</code> com os <code>.srt</code> e os <code>.mp4</code> de todos os idiomas de um corte.</td><td><span class="chip">TASK-14</span></td></tr>
+<tr><td class="mono">CT-19</td><td>Download com <code>Range</code></td><td><span class="chip">TASK-14</span></td></tr>
+<tr><td class="mono">CT-20</td><td><code>.zip</code> do corte</td><td><span class="chip">TASK-14</span></td></tr>
+<tr><td class="mono">RF-27</td><td>O painel deve mostrar o espaço livre e o usado no disco da pasta de dados e o tamanho de cada corte.</td><td><span class="chip">TASK-15</span></td></tr>
+<tr><td class="mono">RF-28</td><td>O painel deve excluir cortes (original, saídas ou ambos), com seleção múltipla, filtro &quot;mais antigos que N dias&quot;, confirmação explícita e o espaço liberado informado.</td><td><span class="chip">TASK-15</span></td></tr>
+<tr><td class="mono">RF-29</td><td>O sistema deve recusar a exclusão de um corte em processamento.</td><td><span class="chip">TASK-15</span></td></tr>
+<tr><td class="mono">CT-21</td><td>Espaço em disco</td><td><span class="chip">TASK-15</span></td></tr>
+<tr><td class="mono">CT-22</td><td>Exclusão em lote, por idade e traversal</td><td><span class="chip">TASK-15</span></td></tr>
+<tr><td class="mono">CT-23</td><td>Exclusão bloqueada</td><td><span class="chip">TASK-15</span></td></tr>
+<tr><td class="mono">RF-14</td><td>A skill <code>translate-subtitles</code> deve receber o caminho do <code>pt.srt</code> e perguntar ao usuário os idiomas de saída.</td><td><span class="chip">TASK-16</span></td></tr>
+<tr><td class="mono">RF-15</td><td>A skill deve ler pelo SSH o <code>pt.srt</code>, o perfil de cada idioma escolhido, o <code>glossario.yaml</code> e o contexto do vídeo, se existir.</td><td><span class="chip">TASK-16</span></td></tr>
+<tr><td class="mono">RF-16</td><td>A skill deve gravar um <code>&lt;idioma&gt;.srt</code> localizado ao lado do <code>pt.srt</code>, com os mesmos ids e timestamps.</td><td><span class="chip">TASK-16</span></td></tr>
+<tr><td class="mono">RF-17</td><td>A skill deve rodar <code>legendar validar</code> em cada arquivo gravado e reescrever as legendas recusadas até a validação passar.</td><td><span class="chip">TASK-16</span></td></tr>
+<tr><td class="mono">CT-12</td><td>Skill de ponta a ponta (manual)</td><td><span class="chip">TASK-16</span></td></tr>
+<tr><td class="mono">RF-37</td><td>O <code>README.md</code> deve documentar a instalação no <code>server</code> (<code>uv</code>, <code>ffmpeg-full</code>, LaunchAgent, Caddy), o uso do painel, o uso da skill e o acesso por rede local ou VPN.</td><td><span class="chip">TASK-17</span></td></tr>
+<tr><td class="mono">CT-30</td><td>README (manual)</td><td><span class="chip">TASK-17</span></td></tr>
+<tr><td class="mono">CT-31</td><td>Corte real (manual)</td><td><span class="chip">TASK-18</span></td></tr>
+</tbody>
+</table></div>
+  </section>
+
+  <section class="panel" id="p-arquivos" role="tabpanel" data-panel="arquivos">
+    <div class="sec-h"><h2>Arquivos alterados</h2><p>Os caminhos de "Mudar" das tarefas, com a ação.</p></div>
+<div class="tw"><table>
+<thead><tr><th>Ação</th><th>Caminho</th></tr></thead>
+<tbody>
+<tr><td><span class="tag criar">criar</span></td><td class="path">pyproject.toml</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">uv.lock</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">.gitignore</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">.env.example</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/__init__.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/cli.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/__init__.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/models.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/errors.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/conftest.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_smoke.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/config.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">config/config.yaml</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">config/glossario.yaml</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">config/idiomas/en.yaml</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">config/idiomas/es.yaml</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">config/idiomas/fr.yaml</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_config.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/srt.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/webvtt.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/validation.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_srt.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_webvtt.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_validation.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/state.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/lock.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_state.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_lock.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/probe.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_probe.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/transcription.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/segmentation.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_transcription.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_segmentation.py</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">pyproject.toml</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">uv.lock</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/burn.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">assets/fonts/Inter-Bold.ttf</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">assets/fonts/OFL-Inter.txt</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_burn.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/__init__.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/app.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/auth.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/index.html</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/tokens.css</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/app.css</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/app.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/fonts/</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_auth.py</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/cli.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">deploy/local.translunar-painel.plist</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">deploy/caddyfile-translunar</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/static/app.css</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/static/index.html</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/static/app.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/events.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/jobs.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_jobs.py</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/app.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/routes_clips.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/clips.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/clips.css</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_routes_clips.py</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">tests/conftest.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/routes_review.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/review.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_routes_review.py</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/static/clips.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/review.css</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/core/pipeline.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_pipeline.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_cli.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/routes_files.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/burn.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_routes_files.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/burn.css</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/static/review.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/routes_storage.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/storage.js</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">src/translunar/panel/static/storage.css</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">tests/test_routes_storage.py</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">src/translunar/panel/routes_clips.py</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">vostok/skills/custom/translate-subtitles/SKILL.md</td></tr>
+<tr><td><span class="tag criar">criar</span></td><td class="path">.claude/skills/translate-subtitles/SKILL.md</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">vostok/context/skill-catalog.md</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">README.md</td></tr>
+<tr><td><span class="tag alterar">alterar</span></td><td class="path">vostok/work/tasks/SPEC-001/TASK-18.md</td></tr>
+</tbody>
+</table></div>
+  </section>
+
+  <section class="panel" id="p-diffs" role="tabpanel" data-panel="diffs">
+    <div class="sec-h"><h2>Diffs</h2><p>O que mudou em cada arquivo alterado, entre o último commit anterior à aprovação e o estado atual.</p></div>
+<details class="dfile">
+<summary><b class="path">vostok/context/skill-catalog.md</b><span class="tag">sem mudanças</span></summary>
+<div class="dbody"><p>Sem mudanças desde a base de comparação.</p></div>
+</details>
+<details class="dfile">
+<summary><b class="path">README.md</b><span class="tag criar">+242</span><span class="tag remover">−39</span></summary>
+<div class="dbody"><div class="tw"><table class="diff">
+<colgroup><col class="cln"><col><col class="cln"><col></colgroup>
+<tr class="hunk"><td colspan="4">@@ -1,66 +1,269 @@</td></tr>
+<tr><td class="ln">1</td><td class="code"># Translunar</td><td class="ln">1</td><td class="code"># Translunar</td></tr>
+<tr><td class="ln">2</td><td class="code"></td><td class="ln">2</td><td class="code"></td></tr>
+<tr><td class="ln">3</td><td class="code del">Pipeline de legendas multilíngues para vídeo vertical. Você deixa cortes em português numa pasta e o Translunar devolve, para cada um, versões em inglês, espanhol e francês com a legenda queimada no vídeo, prontas para postar em Reels, TikTok, Shorts e X. O texto não é traduzido ao pé da letra: é localizado, para que quem assiste entenda nos próprios termos.</td><td class="ln">3</td><td class="code add">Pipeline de legendas multilíngues para vídeo vertical. Você envia cortes em português pelo painel e o Translunar devolve, para cada um, versões em inglês, espanhol e francês com a legenda queimada no vídeo, prontas para postar em Reels, TikTok, Shorts e X. O texto não é traduzido ao pé da letra: é localizado, para que quem assiste entenda nos próprios termos.</td></tr>
+<tr><td class="ln">4</td><td class="code"></td><td class="ln">4</td><td class="code"></td></tr>
+<tr><td class="ln">5</td><td class="code del">Faz parte do ecossistema [Ishtar Sink](https://github.com/Ishtar-Sink): código aberto (AGPL-3.0), pensado para autohospedagem, sem conta, sem plano pago e sem telemetria. O vídeo não sai da sua máquina; só o texto transcrito vai para a API de IA.</td><td class="ln">5</td><td class="code add">Faz parte do ecossistema [Ishtar Sink](https://github.com/Ishtar-Sink): código aberto (AGPL-3.0), pensado para autohospedagem, sem conta, sem plano pago e sem telemetria. O vídeo fica no seu servidor.</td></tr>
+<tr><td class="ln">6</td><td class="code"></td><td class="ln">6</td><td class="code"></td></tr>
+<tr><td class="ln">7</td><td class="code del">&gt; **Em desenvolvimento.** Este repositório ainda não tem código. O que está descrito abaixo é o escopo do MVP, definido na [SPEC-001](vostok/work/specs/draft/SPEC-001-mvp-pipeline-de-legendas-multilingues.md).</td><td class="ln">7</td><td class="code add">A pipeline não chama nenhuma API de IA externa: a transcrição roda local, com o Whisper, e a tradução é feita pelo Claude Code, com a skill `translate-subtitles`.</td></tr>
+<tr><td class="ln">8</td><td class="code del"></td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">9</td><td class="code del">## O que ele faz</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">10</td><td class="code del"></td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">11</td><td class="code del">- **Transcrição local** do português com Whisper rodando no Apple Silicon, gerando um `pt.srt` com timestamps.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">12</td><td class="code del">- **Revisão opcional** antes de localizar: com `--revisar`, a execução para depois da transcrição, você corrige o `pt.srt` e roda de novo. Um erro de transcrição corrigido ali não se espalha para os outros idiomas.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">13</td><td class="code del">- **Localização, não tradução literal.** Expressões, humor e referências brasileiras viram o equivalente que faz sentido em cada idioma, usando um perfil por idioma, um glossário de termos fixos e, se você quiser, um arquivo de contexto por vídeo explicando o que só um brasileiro entenderia.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">14</td><td class="code del">- **Variantes escolhidas para o maior público:** inglês internacional, espanhol neutro (latino-americano, sem *vosotros*) e francês da França.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">15</td><td class="code del">- **Legenda pensada para 9:16:** no máximo 2 linhas, cerca de 30 caracteres por linha, velocidade de leitura controlada (até ~17 caracteres por segundo) e posição fora das áreas cobertas pela interface das plataformas.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">16</td><td class="code del">- **Retomável por construção.** Rodar de novo não refaz o que já está pronto; mudou o `pt.srt`, o glossário, um perfil ou o contexto, refaz só os idiomas afetados. Falha num vídeo ou idioma não derruba o lote.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">17</td><td class="code del">- **Idioma novo sem código:** qualquer idioma de alfabeto latino entra com um arquivo de perfil em `config/idiomas/`.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">18</td><td class="code del">- **Painel web** para subir os cortes, acompanhar o processamento em tempo real, revisar o `pt.srt`, baixar os vídeos prontos (um a um ou em `.zip`) e apagar os antigos para liberar espaço. Uso pessoal, protegido por senha e restrito à rede local ou a uma VPN.</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">19</td><td class="code"></td><td class="ln">8</td><td class="code"></td></tr>
+<tr><td class="ln">20</td><td class="code">## Como funciona</td><td class="ln">9</td><td class="code">## Como funciona</td></tr>
+<tr><td class="ln">21</td><td class="code"></td><td class="ln">10</td><td class="code"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">11</td><td class="code add">1. **Subir:** envie o corte pelo painel (aba Acervo).</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">12</td><td class="code add">2. **Transcrever:** o Whisper, rodando local no servidor, gera o `pt.srt`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">13</td><td class="code add">3. **Revisar:** confira a prévia com a legenda sobreposta no vídeo e corrija o `pt.srt` no painel.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">14</td><td class="code add">4. **Traduzir:** no Claude Code, use a skill `translate-subtitles` com o caminho do `pt.srt`. Ela grava um `.srt` por idioma.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">15</td><td class="code add">5. **Conferir:** veja a prévia de cada idioma no painel (bloco &quot;Idiomas e queima&quot;).</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">16</td><td class="code add">6. **Queimar e baixar:** gere os vídeos com a legenda queimada e baixe um a um ou em `.zip`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">17</td><td class="code add"></td></tr>
+<tr><td class="ln">22</td><td class="code">```text</td><td class="ln">18</td><td class="code">```text</td></tr>
+<tr><td class="ln">23</td><td class="code del">  entrada/corte-01.mp4</td><td class="ln">19</td><td class="code add">  Painel: envio do corte</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">20</td><td class="code add">        │</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">21</td><td class="code add">        ▼</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">22</td><td class="code add">  servidor: saida/corte-01/pt.srt ◄── transcrição (Whisper, local)</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">23</td><td class="code add">        │</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">24</td><td class="code add">        ▼</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">25</td><td class="code add">  Painel: revisão do pt.srt (prévia e edição)</td></tr>
+<tr><td class="ln">24</td><td class="code">        │</td><td class="ln">26</td><td class="code">        │</td></tr>
+<tr><td class="ln">25</td><td class="code del">        ├─ ffprobe ──────────── valida resolução, duração e áudio</td><td class="ln">27</td><td class="code add">        ▼</td></tr>
+<tr><td class="ln">26</td><td class="code del">        ├─ Whisper (local) ──── pt.srt</td><td class="ln">28</td><td class="code add">  Claude Code (skill translate-subtitles)</td></tr>
+<tr><td class="ln">27</td><td class="code del">        ├─ pausa opcional ───── você revisa o pt.srt</td><td class="ln">29</td><td class="code add">        │  grava en.srt  es.srt  fr.srt  e valida com `legendar validar`</td></tr>
+<tr><td class="ln">28</td><td class="code del">        ├─ segmentação ──────── legendas curtas para vídeo vertical</td><td class="ln">30</td><td class="code add">        ▼</td></tr>
+<tr><td class="ln">29</td><td class="code del">        ├─ IA (só texto) ────── en.srt  es.srt  fr.srt   (localizados, com controle de leitura)</td><td class="ln">31</td><td class="code add">  Painel: prévia de cada idioma</td></tr>
+<tr><td class="ln">30</td><td class="code del">        └─ ffmpeg ───────────── en.mp4  es.mp4  fr.mp4   (legenda queimada, áudio intacto)</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">31</td><td class="code">        │</td><td class="ln">32</td><td class="code">        │</td></tr>
+<tr><td class="ln">32</td><td class="code del">  saida/corte-01/</td><td class="ln">33</td><td class="code add">        ▼</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">34</td><td class="code add">  ffmpeg-full: en.mp4  es.mp4  fr.mp4   (legenda queimada, áudio intacto)</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">35</td><td class="code add">        │</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">36</td><td class="code add">        ▼</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">37</td><td class="code add">  Painel: download (um a um ou .zip)</td></tr>
+<tr><td class="ln">33</td><td class="code">```</td><td class="ln">38</td><td class="code">```</td></tr>
+<tr><td class="ln">34</td><td class="code"></td><td class="ln">39</td><td class="code"></td></tr>
+<tr><td class="ln">35</td><td class="code del">A linha de comando e o painel usam o mesmo núcleo, sobre as mesmas pastas, com um lock por corte para que os dois nunca processem o mesmo vídeo ao mesmo tempo.</td><td class="ln">40</td><td class="code add">## Plataformas</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">41</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">42</td><td class="code add">Hoje o Translunar roda num **Mac com Apple Silicon**. O modelo Whisper é leve e roda em outras GPUs e até em CPU, mas o projeto ainda depende do macOS em três pontos:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">43</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">44</td><td class="code add">| Parte | Hoje (macOS) | Outras plataformas |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">45</td><td class="code add">|---|---|---|</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">46</td><td class="code add">| Transcrição | [`mlx-whisper`](https://github.com/ml-explore/mlx-examples), que usa o MLX da Apple | planejado: [`faster-whisper`](https://github.com/SYSTRAN/faster-whisper), com GPU (CUDA) ou CPU |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">47</td><td class="code add">| Serviço do painel | LaunchAgent (`launchctl`) | planejado: `systemd` no Linux |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">48</td><td class="code add">| Nome na rede local | `dns-sd` (Bonjour) | planejado: Avahi no Linux |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">49</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">50</td><td class="code add">O painel, a fila, a queima com o ffmpeg, a CLI e a skill de tradução já são independentes de sistema. O suporte a Linux e Windows está no [Roadmap](#roadmap), na SPEC-003.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">51</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">52</td><td class="code add">## Requisitos</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">53</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">54</td><td class="code add">- Um Mac com Apple Silicon como servidor (desenvolvido num M1 Pro com 16 GB).</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">55</td><td class="code add">- [Homebrew](https://brew.sh/), Python 3.11+ e [`uv`](https://docs.astral.sh/uv/).</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">56</td><td class="code add">- `ffmpeg-full` do Homebrew. O `ffmpeg` padrão do Homebrew não tem libass, por isso não queima legenda.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">57</td><td class="code add">- [Caddy](https://caddyserver.com/), para o acesso HTTPS pela rede local.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">58</td><td class="code add">- O [Claude Code](https://claude.com/claude-code) numa máquina com acesso SSH ao servidor, para a tradução.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">59</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">60</td><td class="code add">## Convenções</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">61</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">62</td><td class="code add">A skill de tradução e os arquivos de `deploy/` partem destas convenções. Se usar outras, ajuste os arquivos citados.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">63</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">64</td><td class="code add">| O quê | Valor padrão | Onde aparece |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">65</td><td class="code add">|---|---|---|</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">66</td><td class="code add">| Alias SSH do servidor | `server` (em `~/.ssh/config`) | skill `translate-subtitles` |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">67</td><td class="code add">| Pasta do projeto | `~/apps/translunar` | skill, `deploy/local.translunar-painel.plist` |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">68</td><td class="code add">| Pasta de dados | `~/translunar-dados` (`entrada/` e `saida/`) | skill, `config/config.local.yaml` |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">69</td><td class="code add">| Logs | `~/logs` | `deploy/local.translunar-painel.plist` |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">70</td><td class="code add">| Painel | `127.0.0.1:8770` | `config/config.yaml`, `deploy/caddyfile-translunar` |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">71</td><td class="code add">| Endereço HTTPS | `translunar.local` e `&lt;ip-do-servidor&gt;:8771` | `deploy/caddyfile-translunar` |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">72</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">73</td><td class="code add">## Instalação no servidor</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">74</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">75</td><td class="code add">Os comandos abaixo rodam no servidor.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">76</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">77</td><td class="code add">1. Instale as dependências do sistema:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">78</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">79</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">80</td><td class="code add">   brew install uv ffmpeg-full caddy</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">81</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">82</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">83</td><td class="code add">   Os binários do ffmpeg com libass ficam em `$(brew --prefix ffmpeg-full)/bin/`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">84</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">85</td><td class="code add">2. Clone o projeto e crie as pastas:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">86</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">87</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">88</td><td class="code add">   mkdir -p ~/apps ~/logs ~/translunar-dados/entrada ~/translunar-dados/saida</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">89</td><td class="code add">   git clone https://github.com/Ishtar-Sink/Translunar.git ~/apps/translunar</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">90</td><td class="code add">   cd ~/apps/translunar</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">91</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">92</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">93</td><td class="code add">3. Crie `config/config.local.yaml`, só com os valores desta máquina. Ele fica fora do git e sobrepõe o `config/config.yaml`:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">94</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">95</td><td class="code add">   ```yaml</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">96</td><td class="code add">   pasta_dados: ~/translunar-dados</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">97</td><td class="code add">   queima:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">98</td><td class="code add">     ffmpeg: /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">99</td><td class="code add">     ffprobe: /opt/homebrew/opt/ffmpeg-full/bin/ffprobe</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">100</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">101</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">102</td><td class="code add">   Confira os caminhos do ffmpeg com `brew --prefix ffmpeg-full`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">103</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">104</td><td class="code add">4. Crie o `.env` com a senha do painel:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">105</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">106</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">107</td><td class="code add">   cp .env.example .env</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">108</td><td class="code add">   chmod 600 .env</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">109</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">110</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">111</td><td class="code add">   Troque `TRANSLUNAR_PAINEL_SENHA` por uma senha forte. `TRANSLUNAR_PAINEL_SEGREDO` pode ficar vazio: o painel gera um e grava na pasta de dados.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">112</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">113</td><td class="code add">5. Instale o projeto com o extra do Mac e confira:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">114</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">115</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">116</td><td class="code add">   uv sync --extra mac</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">117</td><td class="code add">   .venv/bin/legendar --version</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">118</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">119</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">120</td><td class="code add">   O modelo do Whisper é baixado na primeira transcrição.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">121</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">122</td><td class="code add">6. Suba o painel como LaunchAgent, para ele voltar sozinho depois de um reinício. O arquivo de `deploy/` usa `/Users/server` como pasta pessoal; troque pela sua ao copiar:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">123</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">124</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">125</td><td class="code add">   sed &quot;s|/Users/server|$HOME|g&quot; deploy/local.translunar-painel.plist &gt; ~/Library/LaunchAgents/local.translunar-painel.plist</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">126</td><td class="code add">   launchctl load -w ~/Library/LaunchAgents/local.translunar-painel.plist</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">127</td><td class="code add">   curl -s http://127.0.0.1:8770/api/sessao</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">128</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">129</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">130</td><td class="code add">   A resposta esperada é `{&quot;autenticado&quot;:false,&quot;csrf&quot;:null}`. Os logs ficam em `~/logs/translunar-painel.log` e `~/logs/translunar-painel.err`. O painel escuta só em `127.0.0.1:8770`; o acesso de fora passa pelo Caddy.</td></tr>
+<tr><td class="ln">36</td><td class="code"></td><td class="ln">131</td><td class="code"></td></tr>
+<tr><td class="ln">37</td><td class="code del">## Uso previsto</td><td class="ln">132</td><td class="code add">7. Configure o Caddy. Troque o IP do bloco de `deploy/caddyfile-translunar` pelo IP do servidor na rede local e importe o bloco no seu Caddyfile (`$(brew --prefix)/etc/Caddyfile`), com backup antes:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">133</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">134</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">135</td><td class="code add">   CADDYFILE=&quot;$(brew --prefix)/etc/Caddyfile&quot;</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">136</td><td class="code add">   cp &quot;$CADDYFILE&quot; &quot;$CADDYFILE.bak&quot;</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">137</td><td class="code add">   echo &quot;import $HOME/apps/translunar/deploy/caddyfile-translunar&quot; &gt;&gt; &quot;$CADDYFILE&quot;</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">138</td><td class="code add">   caddy validate --config &quot;$CADDYFILE&quot; --adapter caddyfile</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">139</td><td class="code add">   caddy reload --config &quot;$CADDYFILE&quot; --adapter caddyfile</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">140</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">141</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">142</td><td class="code add">   Se o Caddy ainda não roda como serviço, suba com `brew services start caddy` em vez do `reload`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">143</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">144</td><td class="code add">8. Publique o nome `translunar.local` na rede local com o `dns-sd` do macOS. Para ficar permanente, crie um LaunchAgent `~/Library/LaunchAgents/local.translunar-mdns.plist` que roda, com `RunAtLoad` e `KeepAlive`:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">145</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">146</td><td class="code add">   ```bash</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">147</td><td class="code add">   /usr/bin/dns-sd -P Translunar _https._tcp local 443 translunar.local &lt;ip-do-servidor&gt;</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">148</td><td class="code add">   ```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">149</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">150</td><td class="code add">   e carregue com `launchctl load -w ~/Library/LaunchAgents/local.translunar-mdns.plist`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">151</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">152</td><td class="code add">## Acesso</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">153</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">154</td><td class="code add">- Na rede local: `https://translunar.local`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">155</td><td class="code add">- Quando o `.local` não resolve (uma VPN costuma impedir o mDNS): `https://&lt;ip-do-servidor&gt;:8771`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">156</td><td class="code add">- O certificado vem da CA local do Caddy (`tls internal`). Instale e confie na CA em cada aparelho, para o navegador não avisar. Ela fica na pasta de dados do Caddy, em `pki/authorities/local/root.crt` (com o Caddy rodando como seu usuário, `~/Library/Application Support/Caddy/`).</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">157</td><td class="code add">- **Nunca exponha o painel à internet.** Ele é de um usuário só e protegido por senha, mas não foi feito para ficar público.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">158</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">159</td><td class="code add">## Uso do painel</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">160</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">161</td><td class="code add">- **Acervo:** envie os cortes arrastando e soltando na área de envio. Cada cartão tem um seletor de formato 9:16 ou 16:9.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">162</td><td class="code add">- **Revisão:** rode a transcrição, veja a prévia com a legenda sobreposta e edite o `pt.srt`. Também é aqui que você edita o contexto do vídeo e copia o caminho do `pt.srt` com o botão &quot;Copiar&quot;, para usar na skill.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">163</td><td class="code add">- **Idiomas e queima:** no bloco &quot;Idiomas e queima&quot;, veja a prévia de cada idioma, gere a queima e assista ou baixe os vídeos. Você pode baixar os vídeos um a um ou em `.zip`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">164</td><td class="code add">- **Armazenamento:** veja o uso do disco e filtre por Tudo, Vídeos originais ou Legendas e queimas. Marque o que não precisa mais e apague em definitivo para liberar espaço.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">165</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">166</td><td class="code add">## Tradução com o Claude Code</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">167</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">168</td><td class="code add">Para traduzir um corte, use a skill `translate-subtitles` no Claude Code, com o caminho do `pt.srt` no servidor:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">169</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">170</td><td class="code add">```text</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">171</td><td class="code add">/translate-subtitles ~/translunar-dados/saida/corte-01/pt.srt</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">172</td><td class="code add">```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">173</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">174</td><td class="code add">Ou cole o caminho no chat e peça para traduzir. A skill:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">175</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">176</td><td class="code add">1. Pergunta quais idiomas você quer. As opções são os perfis em `config/idiomas/`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">177</td><td class="code add">2. Lê o `pt.srt`, o perfil de cada idioma, o glossário e o contexto do vídeo, se existir.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">178</td><td class="code add">3. Grava um `&lt;idioma&gt;.srt` ao lado do `pt.srt`, sem mexer no `pt.srt`.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">179</td><td class="code add">4. Valida cada arquivo com `legendar validar`. Só termina quando a validação estiver aprovada.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">180</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">181</td><td class="code add">Para acrescentar um idioma, crie um perfil em `config/idiomas/&lt;codigo&gt;.yaml`, no mesmo formato de `config/idiomas/es.yaml`:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">182</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">183</td><td class="code add">```yaml</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">184</td><td class="code add">codigo: es</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">185</td><td class="code add">nome: Espanhol</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">186</td><td class="code add">variante: espanhol neutro (latino-americano)</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">187</td><td class="code add">publico: hispanofalantes de vários países, sem regionalismos</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">188</td><td class="code add">registro: segue o do original, natural e conversacional</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">189</td><td class="code add">regras:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">190</td><td class="code add">  - não usar vosotros</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">191</td><td class="code add">  - evitar gírias de um país específico</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">192</td><td class="code add">```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">193</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">194</td><td class="code add">Para editar o glossário, use `config/glossario.yaml`. Um termo com `traducoes` vazio nunca é traduzido. Um termo com traduções fixas usa a tradução de cada idioma. Os perfis e o glossário fazem parte do projeto: versione as mudanças no git.</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">195</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">196</td><td class="code add">## Linha de comando</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">197</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">198</td><td class="code add">Os comandos rodam no servidor, com `~/apps/translunar/.venv/bin/legendar`:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">199</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">200</td><td class="code add">| Comando | O que faz |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">201</td><td class="code add">|---|---|</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">202</td><td class="code add">| `legendar painel` | Sobe o servidor do painel (usado pelo LaunchAgent). |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">203</td><td class="code add">| `legendar transcrever [VIDEO...] [--forcar] [--json]` | Transcreve os vídeos informados e gera o `pt.srt`. `--forcar` refaz mesmo o que já está pronto. |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">204</td><td class="code add">| `legendar validar &lt;CAMINHO_SRT&gt; [--json]` | Confere um `.srt` contra os limites da legenda e contra o `pt.srt`. |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">205</td><td class="code add">| `legendar queimar &lt;CORTE&gt; &lt;IDIOMA&gt;[,&lt;IDIOMA&gt;...] [--forcar] [--json]` | Queima a legenda de um ou mais idiomas no vídeo do corte. |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">206</td><td class="code add">| `legendar status [CORTE] [--json]` | Mostra o estado de cada etapa e idioma, de um corte ou de todos. |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">207</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">208</td><td class="code add">`--json` troca a saída de texto por JSON. A saída de `legendar validar --json` tem este formato:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">209</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">210</td><td class="code add">```json</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">211</td><td class="code add">{</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">212</td><td class="code add">  &quot;ok&quot;: false,</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">213</td><td class="code add">  &quot;file&quot;: &quot;/Users/voce/translunar-dados/saida/corte-01/en.srt&quot;,</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">214</td><td class="code add">  &quot;language&quot;: &quot;en&quot;,</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">215</td><td class="code add">  &quot;problems&quot;: [</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">216</td><td class="code add">    {&quot;id&quot;: 12, &quot;kind&quot;: &quot;cps&quot;, &quot;detail&quot;: &quot;19.4 &gt; 17&quot;},</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">217</td><td class="code add">    {&quot;id&quot;: 15, &quot;kind&quot;: &quot;timestamp&quot;, &quot;detail&quot;: &quot;00:00:31,200 difere de 00:00:31,000&quot;}</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">218</td><td class="code add">  ]</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">219</td><td class="code add">}</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">220</td><td class="code add">```</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">221</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">222</td><td class="code add">Códigos de saída:</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">223</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">224</td><td class="code add">| Código | Significado |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">225</td><td class="code add">|---|---|</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">226</td><td class="code add">| 0 | sucesso |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">227</td><td class="code add">| 1 | erro de execução (ffmpeg, whisper, E/S) |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">228</td><td class="code add">| 2 | uso inválido (argumento ou corte inexistente) |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">229</td><td class="code add">| 3 | validação recusada |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">230</td><td class="code add">| 4 | corte bloqueado (lock ou em processamento) |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">231</td><td class="code add">| 5 | dependência ausente (ffmpeg sem libass, mlx-whisper, fonte) |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">232</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">233</td><td class="code add">## Atualização</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">234</td><td class="code add"></td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">235</td><td class="code add">No servidor, com a árvore do projeto limpa (`git -C ~/apps/translunar status`):</td></tr>
+<tr><td class="ln">38</td><td class="code"></td><td class="ln">236</td><td class="code"></td></tr>
+<tr><td class="ln">39</td><td class="code">```bash</td><td class="ln">237</td><td class="code">```bash</td></tr>
+<tr><td class="ln">40</td><td class="code del">legendar run                 # processa tudo o que está em entrada/</td><td class="ln">238</td><td class="code add">git -C ~/apps/translunar pull</td></tr>
+<tr><td class="ln">41</td><td class="code del">legendar run --revisar       # para depois da transcrição para você revisar o pt.srt</td><td class="ln">239</td><td class="code add">cd ~/apps/translunar &amp;&amp; uv sync --extra mac</td></tr>
+<tr><td class="ln">42</td><td class="code del">legendar run --forcar        # refaz tudo, ignorando o que já está pronto</td><td class="ln">240</td><td class="code add">launchctl kickstart -k gui/$(id -u)/local.translunar-painel</td></tr>
+<tr><td class="ln">43</td><td class="code del">legendar painel              # sobe o painel web</td><td class="ln"></td><td class="code empty"></td></tr>
+<tr><td class="ln">44</td><td class="code">```</td><td class="ln">241</td><td class="code">```</td></tr>
+<tr><td class="ln">45</td><td class="code"></td><td class="ln">242</td><td class="code"></td></tr>
+<tr><td class="ln">46</td><td class="code del">Também haverá opções para escolher a pasta de entrada, os idiomas, pular o render e definir o paralelismo.</td><td class="ln">243</td><td class="code add">## Desenvolvimento</td></tr>
+<tr><td class="ln">47</td><td class="code"></td><td class="ln">244</td><td class="code"></td></tr>
+<tr><td class="ln">48</td><td class="code del">## Requisitos previstos</td><td class="ln">245</td><td class="code add">Na raiz do projeto:</td></tr>
+<tr><td class="ln">49</td><td class="code"></td><td class="ln">246</td><td class="code"></td></tr>
+<tr><td class="ln">50</td><td class="code del">- Mac com Apple Silicon (desenvolvido num M1 Pro com 16 GB). A transcrição usa `mlx-whisper`; `faster-whisper` fica como alternativa para outras máquinas.</td><td class="ln">247</td><td class="code add">```bash</td></tr>
+<tr><td class="ln">51</td><td class="code del">- Python 3.11+ com [`uv`](https://docs.astral.sh/uv/).</td><td class="ln">248</td><td class="code add">uv sync</td></tr>
+<tr><td class="ln">52</td><td class="code del">- `ffmpeg` com libass e `ffprobe`.</td><td class="ln">249</td><td class="code add">uv run pytest</td></tr>
+<tr><td class="ln">53</td><td class="code del">- Uma chave da API da Anthropic em `ANTHROPIC_API_KEY`, por variável de ambiente ou arquivo `.env` fora do git.</td><td class="ln">250</td><td class="code add">uv run ruff check</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">251</td><td class="code add">uv run ruff format --check</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">252</td><td class="code add">uv run mypy</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">253</td><td class="code add">```</td></tr>
+<tr><td class="ln">54</td><td class="code"></td><td class="ln">254</td><td class="code"></td></tr>
+<tr><td class="ln">55</td><td class="code del">O Translunar foi pensado para ser operado por SSH. Rode os jobs longos dentro do `tmux`, e o painel dentro do `tmux` ou pelo `launchd`, para que nada morra se a conexão cair.</td><td class="ln">255</td><td class="code add">Para rodar os testes sem o `mlx-whisper`, defina `TRANSLUNAR_TRANSCRITOR=falso`.</td></tr>
+<tr><td class="ln">56</td><td class="code"></td><td class="ln">256</td><td class="code"></td></tr>
+<tr><td class="ln">57</td><td class="code del">## Fora do MVP</td><td class="ln">257</td><td class="code add">## Roadmap</td></tr>
+<tr><td class="ln">58</td><td class="code"></td><td class="ln">258</td><td class="code"></td></tr>
+<tr><td class="ln">59</td><td class="code del">Em ordem provável: títulos, descrições e hashtags localizados por plataforma; dublagem; publicação automática; pasta monitorada que processa cortes novos sozinha; idiomas com alfabeto não latino.</td><td class="ln">259</td><td class="code add">| Spec | Escopo | Situação |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">260</td><td class="code add">|---|---|---|</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">261</td><td class="code add">| [SPEC-001](vostok/work/specs/refined/SPEC-001-mvp-pipeline-de-legendas-multilingues.md) | MVP: painel, transcrição local, revisão com prévia, tradução pela skill, queima e downloads, no Mac | em andamento |</td></tr>
+<tr><td class="ln"></td><td class="code empty"></td><td class="ln">262</td><td class="code add">| [SPEC-003](vostok/work/specs/draft/SPEC-003-suporte-a-outras-plataformas.md) | Outras plataformas: transcrição com `faster-whisper` (GPU ou CPU), serviço e nome na rede no Linux, instalação por plataforma | planejada (rascunho) |</td></tr>
+<tr><td class="ln">60</td><td class="code"></td><td class="ln">263</td><td class="code"></td></tr>
+<tr><td class="ln">61</td><td class="code del">## Segurança em uma linha</td><td class="ln">264</td><td class="code add">## Especificação</td></tr>
+<tr><td class="ln">62</td><td class="code"></td><td class="ln">265</td><td class="code"></td></tr>
+<tr><td class="ln">63</td><td class="code del">O painel é de um usuário só e protegido por senha, mas não foi feito para a internet: acesse pela rede local ou por uma VPN privada, **nunca o exponha publicamente**.</td><td class="ln">266</td><td class="code add">A especificação do MVP está em [vostok/work/specs/refined/SPEC-001-mvp-pipeline-de-legendas-multilingues.md](vostok/work/specs/refined/SPEC-001-mvp-pipeline-de-legendas-multilingues.md).</td></tr>
+<tr><td class="ln">64</td><td class="code"></td><td class="ln">267</td><td class="code"></td></tr>
+<tr><td class="ln">65</td><td class="code">## Sobre o nome</td><td class="ln">268</td><td class="code">## Sobre o nome</td></tr>
+<tr><td class="ln">66</td><td class="code"></td><td class="ln">269</td><td class="code"></td></tr>
+</table></div></div>
+</details>
+<details class="dfile">
+<summary><b class="path">vostok/work/tasks/SPEC-001/TASK-18.md</b><span class="tag">sem mudanças</span></summary>
+<div class="dbody"><p>Sem mudanças desde a base de comparação.</p></div>
+</details>
+
+  </section>
+
+  <section class="panel" id="p-commits" role="tabpanel" data-panel="commits">
+    <div class="sec-h"><h2>Commits</h2><p>Desde a aprovação da spec, nos caminhos das tarefas.</p></div>
+<p class="na">Não se aplica. Nenhum commit encontrado.</p>
+  </section>
+
+  <section class="panel" id="p-decisoes" role="tabpanel" data-panel="decisoes">
+    <div class="sec-h"><h2>Decisões</h2></div>
+    <div class="md">
+<div class="tw"><table>
+<thead>
+<tr><th>Decisão</th><th>Alternativa descartada</th><th>Motivo</th></tr>
+</thead>
+<tbody>
+<tr><td>O painel conduz a pipeline e o Claude Code só traduz, por skill (DEC-002).</td><td>IA chamada pela pipeline (DEC-001).</td><td>Sem chave de API nem custo por uso, e a tradução fica revisável no chat.</td></tr>
+<tr><td>Prévia em WebVTT sobreposta no player, com a fonte convertida para a medida do libass.</td><td>Prévia renderizada com ffmpeg.</td><td>Atualização instantânea; a conversão faz a prévia quebrar as linhas como a queima.</td></tr>
+<tr><td>Código publicado por <code>rsync</code> no <code>server</code>.</td><td><code>git clone</code> e <code>git pull</code>.</td><td>O repositório é privado e o <code>server</code> não tem acesso ao GitHub (KNW-003).</td></tr>
+<tr><td><code>ffmpeg-full</code> com caminho configurável.</td><td><code>ffmpeg</code> padrão do Homebrew.</td><td>O padrão não tem libass (KNW-001).</td></tr>
+<tr><td>Queimas do mesmo corte serializadas por um lock por corte no painel.</td><td>Rejeitar a segunda queima.</td><td>A segunda queima de outro idioma falhava com corte bloqueado.</td></tr>
+<tr><td>Seletor do armazenamento como filtro do que ver, e exclusão só do que foi marcado.</td><td>Seletor como alvo da exclusão.</td><td>Pedido na revisão visual: o alvo implícito confundia e não apagava o esperado.</td></tr>
+<tr><td>Limites rígidos e configuráveis: 2 linhas, 32 caracteres, 17 cps.</td><td>Limites só como aviso.</td><td>Legibilidade garantida nas redes.</td></tr>
+</tbody>
+</table></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-aprendizados" role="tabpanel" data-panel="aprendizados">
+    <div class="sec-h"><h2>Aprendizados</h2></div>
+    <div class="md">
+<ul>
+<li><strong>Baseline estável:</strong> o baseline por saída do pytest mudava a cada entrega e bloqueava a regressão; virou &quot;suite ok/suite com falha&quot; em todas as tarefas.</li>
+<li><strong>macOS:</strong> <code>wc -l</code> devolve o número com espaços e quebrou uma verificação da TASK-09; a contagem passou a usar <code>grep -c</code>.</li>
+<li>**Nomes <code>.local</code>:** o Bonjour do macOS só publica o nome do host; <code>translunar.local</code> precisou de <code>dns-sd -P</code> num LaunchAgent próprio (KNW-003).</li>
+<li><strong>Estado entre seções:</strong> seções do painel mostravam dados antigos até recarregar; o evento <code>secao-ativada</code> passou a recarregar cada seção ao aparecer.</li>
+<li><strong>Revisões visuais no meio do plano:</strong> as paradas para o Victor conferir o visual geraram os ajustes do acervo, da revisão, da queima e do armazenamento antes do fim, em vez de uma lista grande na validação final.</li>
+<li><strong>ruff 0.17</strong> formata blocos Python dentro de Markdown (KNW-002).</li>
+</ul>
+    </div>
+  </section>
+
+  <section class="panel" id="p-atencao" role="tabpanel" data-panel="atencao">
+    <div class="sec-h"><h2>Pontos de atenção</h2></div>
+    <div class="note warn"><b>Antes de mexer</b>
+<ul>
+<li>O Caddy principal do <code>server</code> roda como root, e a CA local fica no armazenamento do root; o certificado raiz se obtém pela API de admin do Caddy. Navegadores baseados em Firefox, como o Zen, precisam importar a CA separadamente.</li>
+<li>A publicação por <code>rsync</code> é feita sem <code>--delete</code>: arquivos removidos no repositório continuam no <code>server</code> até serem apagados à mão.</li>
+<li>Excluir um corte e transcrevê-lo de novo apaga traduções e queimas; a skill precisa ser rodada outra vez.</li>
+<li>Jobs interrompidos por reinício ficam <code>interrompido</code> e não voltam sozinhos.</li>
+<li>Pendências visuais: a aba &quot;Armazenamento&quot; corta em janelas estreitas e as caixas de seleção ficam brancas no tema escuro.</li>
+<li>O suporte a outras plataformas (<code>faster-whisper</code>, <code>systemd</code>, Avahi) está na SPEC-003, em rascunho.</li>
+</ul>
+    </div>
+  </section>
+
+  <section class="panel" id="p-referencias" role="tabpanel" data-panel="referencias">
+    <div class="sec-h"><h2>Referências</h2><p>Para se aprofundar.</p></div>
+    <div class="md">
+<div class="tw"><table>
+<thead>
+<tr><th>Referência</th><th>Motivo</th></tr>
+</thead>
+<tbody>
+<tr><td><code>vostok/work/specs/refined/SPEC-001-mvp-pipeline-de-legendas-multilingues.md</code></td><td>Requisitos, contratos da CLI, da API e do <code>estado.json</code>, e as decisões.</td></tr>
+<tr><td><code>README.md</code></td><td>Instalação, uso do painel e da skill, CLI e atualização.</td></tr>
+<tr><td><code>src/translunar/core/pipeline.py</code></td><td>Ponto de entrada da orquestração e da idempotência.</td></tr>
+<tr><td><code>src/translunar/panel/routes_files.py</code></td><td>Queima com lock por corte, <code>Range</code> e <code>.zip</code>.</td></tr>
+<tr><td><code>src/translunar/panel/static/review.js</code></td><td>Prévia sobreposta e a conversão de tamanho para o libass.</td></tr>
+<tr><td><code>vostok/skills/custom/translate-subtitles/SKILL.md</code></td><td>Regras e passos da tradução pelo Claude Code.</td></tr>
+<tr><td><code>config/config.yaml</code> e <code>config/idiomas/</code></td><td>Estilo da legenda, limites e perfis de idioma.</td></tr>
+<tr><td><code>deploy/</code></td><td>LaunchAgent e Caddy usados no <code>server</code>.</td></tr>
+<tr><td>DEC-002, KNW-001, KNW-003</td><td>Arquitetura do fluxo, libass no <code>server</code> e publicação de nomes <code>.local</code>.</td></tr>
+<tr><td><code>vostok/work/specs/draft/SPEC-003-suporte-a-outras-plataformas.md</code></td><td>Próximo passo planejado: rodar fora do Mac.</td></tr>
+</tbody>
+</table></div>
+    </div>
+  </section>
+</main>
+
+<footer>Vostok · documento técnico de SPEC-001, gerado a partir da spec, das tarefas e do conteúdo da finalização.</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var button = document.getElementById("theme-toggle");
+  button.addEventListener("click", function () {
+    var light = root.getAttribute("data-theme") !== "light";
+    root.setAttribute("data-theme", light ? "light" : "dark");
+    button.textContent = light ? "Tema escuro" : "Tema claro";
+    button.setAttribute("aria-pressed", light ? "true" : "false");
+  });
+
+  // Abas: sem JavaScript, todas as seções aparecem em sequência e os links levam a cada uma.
+  // Links do menu sem painel correspondente saem do menu.
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".nav a[data-tab]")).filter(function (a) {
+    if (document.getElementById("p-" + a.getAttribute("data-tab"))) return true;
+    a.parentNode.removeChild(a);
+    return false;
+  });
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".panel"));
+  // O hash da aba (#diffs) não coincide com o id da seção (p-diffs): o link continua compartilhável
+  // e o navegador não rola até a seção antes de ela aparecer, o que esconderia o cabeçalho.
+  function show(id) {
+    if (!tabs.length) return;
+    id = id.replace(/^p-/, "");
+    if (!document.getElementById("p-" + id)) id = tabs[0].getAttribute("data-tab");
+    tabs.forEach(function (a) {
+      var on = a.getAttribute("data-tab") === id;
+      a.classList.toggle("on", on);
+      a.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    panels.forEach(function (p) { p.classList.toggle("on", p.id === "p-" + id); });
+  }
+  tabs.forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      show(a.getAttribute("data-tab"));
+      history.replaceState(null, "", "#" + a.getAttribute("data-tab"));
+    });
+  });
+  document.body.classList.add("tabs");
+  show((location.hash || "").replace("#", ""));
+
+  // Na impressão, os blocos de diff fechados abrem para o conteúdo sair inteiro no papel.
+  var closed = [];
+  window.addEventListener("beforeprint", function () {
+    closed = Array.prototype.slice.call(document.querySelectorAll("details.dfile:not([open])"));
+    closed.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    closed.forEach(function (d) { d.open = false; });
+  });
+})();
+</script>
+</body>
+</html>
